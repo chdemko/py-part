@@ -840,7 +840,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             ... )
             [0;12) | [13;30)
         """
-        # TODO: Precise algorithmic complexity
+        # TODO Precise algorithmic complexity for union and intersection.
         result = self.__class__()
         for item in self._union(*args):
             # pylint: disable=protected-access
