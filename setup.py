@@ -23,7 +23,7 @@ with open("README.md", "r") as stream:
     long_description = stream.read()
 
 setuptools.setup(
-    name="part",  # Replace with your own username
+    name="part",
     version="0.0.1",
     author="Christophe Demko",
     author_email="chdemko@gmail.com",
