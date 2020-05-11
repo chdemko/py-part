@@ -1,0 +1,9 @@
+[report]
+exclude_lines =
+    raise NotImplementedError
+    import doctest
+    doctest.testmod()
+
+[run]
+omit =
+    */examples*
