@@ -397,6 +397,7 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             str(a.compress()), "{'[1;5)': {1}, '[5;20)': {1, 2}, '[20;30)': {1}}"
         )
 
+
 # TODO Verify __setitem__ and __delitem__ for particular cases.
 # BODY When interval added is empty (see specially `_stop` method).
 
