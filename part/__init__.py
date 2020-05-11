@@ -1,6 +1,7 @@
 """
-The :mod:`part` package is designed to maintain subsets of sorted spaces and defines
-several classes:
+The :mod:`part` package is designed to maintain subsets of sorted spaces.
+
+It defines several classes:
 
 * :class:`Atomic` which represents any convex subset of a totally ordered space;
 * :class:`Empty` which represents the empty subset. There is only one instance of
