@@ -362,7 +362,10 @@ class FrozenIntervalDict(IntervalDict):
     def __init__(
         self,
         iterable: Optional[
-            Union[Mapping, Iterable[Tuple[atomic.IntervalValue, Any]]]
+            Union[
+                Mapping[atomic.IntervalValue, Any],
+                Iterable[Tuple[atomic.IntervalValue, Any]],
+            ]
         ] = None,
     ) -> None:
         super().__init__()
@@ -402,7 +405,10 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
     def __init__(
         self,
         iterable: Optional[
-            Union[Mapping, Iterable[Tuple[atomic.IntervalValue, Any]]]
+            Union[
+                Mapping[atomic.IntervalValue, Any],
+                Iterable[Tuple[atomic.IntervalValue, Any]],
+            ]
         ] = None,
         default: Any = None,
     ) -> None:
@@ -474,7 +480,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
             for key, value in iterable.items():
                 self[atomic.Atomic.from_value(key)] = value
         elif isinstance(iterable, collections.abc.Iterable):
-            for key, value in iterable:
+            for key, value in iterable:  # type: ignore
                 self[atomic.Atomic.from_value(key)] = value
         elif iterable is not None:
             raise TypeError(f"{type(iterable)} object is not iterable")
