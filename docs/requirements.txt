@@ -3,3 +3,4 @@ sphinx_rtd_theme>=0.4
 pylint>=2.4
 Pygments>=2.5
 nbsphinx>=0.5
+sortedcontainers>=2.1
