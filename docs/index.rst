@@ -17,6 +17,12 @@ interval dictionaries.
 
 ..  toctree::
     :maxdepth: 1
+    :caption: Building
+
+    build/index.rst
+
+..  toctree::
+    :maxdepth: 1
     :caption: Learning
 
     notebooks/index.rst
@@ -26,6 +32,12 @@ interval dictionaries.
     :caption: Reference
 
     api/index.rst
+
+..  toctree::
+    :maxdepth: 1
+    :caption: Getting help
+
+    help/index.rst
 
 Indices and tables
 ==================

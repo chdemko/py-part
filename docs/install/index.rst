@@ -1,7 +1,4 @@
-===============
-Install py-part
-===============
-
+============
 Installation
 ============
 
@@ -10,7 +7,8 @@ To upgrade to the current ``develop`` branch, use
 .. code-block:: console
     :class: admonition
 
-    $ pip install --pre --upgrade git+https://github.com/chdemko/py-part
+    $ pip install --pre --upgrade --force --no-cache \
+    >     git+https://github.com/chdemko/py-part
 
 `pip` is a script that downloads and installs modules from the
 Python Package Index, PyPI_.
@@ -24,14 +22,4 @@ On a Debian-based system (including Ubuntu), you can install it using
     # apt-get update
     # apt-get install python3-pip
 
-
-Getting Help
-============
-
-.. important::
-
-    If you have any difficulties with *py-part*, please feel welcome to
-    `file an issue`_ on github so that we can help.
-
 .. _PyPI: https://pypi.org
-.. _file an issue: https://github.com/chdemko/py-part/issues

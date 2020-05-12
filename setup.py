@@ -48,8 +48,6 @@ setuptools.setup(
         "docs": [
             "sphinx>=3.0",
             "sphinx_rtd_theme>=0.4",
-            "pylint>=2.4",
-            "Pygments>=2.5",
             "jupyter>=1.0",
             "graphviz>=0.13",
             "nbsphinx>=0.5",
@@ -57,12 +55,14 @@ setuptools.setup(
         "test": [
             "tox>=3.14",
             "doc8",
+            "Pygments>=2.5",
             "pylint>=2.4",
             "mypy",
             "black",
             "pytest-cov",
             "nose2",
         ],
+        "build": ["setuptools_cythonize>=1.0"],
     },
     cmdclass={**add_sphinx(), **add_cythonize()},
 )
