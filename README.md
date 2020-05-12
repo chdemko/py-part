@@ -1,6 +1,7 @@
 # py-part
 
 ![Python package](https://github.com/chdemko/py-part/workflows/Python%20package/badge.svg?branch=develop)
+[![Coveralls](https://img.shields.io/coveralls/github/chdemko/py-part/develop.svg?logo=Codecov&logoColor=white)](https://coveralls.io/github/chdemko/py-part?branch=develop)
 [![Codacy grade](https://img.shields.io/codacy/grade/501ab4f8749a4b6ab6c768e217235f59)](https://www.codacy.com/manual/chdemko/py-part)
 [![Repo Size](https://img.shields.io/github/repo-size/chdemko/py-part.svg)](http://py-part.readthedocs.io/en/latest/)
 [![Docs](https://img.shields.io/readthedocs/py-part.svg?logo=read-the-docs&logoColor=white)](http://py-part.readthedocs.io/en/latest/)
