@@ -357,6 +357,8 @@ class IntervalDict(collections.abc.Mapping, metaclass=ABCMeta):
 
 class FrozenIntervalDict(IntervalDict):
     """
+    Frozen Interval Dictionary class.
+
     The :class:`FrozenIntervalDict` class (which inherits from the :class:`IntervalDict`
     class) is designed to hold frozen dict of disjoint intervals.
     """
@@ -393,8 +395,9 @@ class FrozenIntervalDict(IntervalDict):
 
     def __hash__(self) -> int:
         """
-        A :class:`FrozenIntervalDict` instance is hashable. It can be used as key in
-        dictionaries.
+        A :class:`FrozenIntervalDict` instance is hashable.
+
+        It can be used as key in dictionaries.
         """
         if self._hash is None:
             self._hash = hash(frozenset(self._mapping.items()))
@@ -410,6 +413,8 @@ class FrozenIntervalDict(IntervalDict):
 # pylint: disable=too-many-ancestors
 class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
     """
+    Mutable Interval Dictionary class.
+
     The :class:`MutableIntervalDict` class (which inherits from the
     :class:`IntervalDict` class) is designed to hold mutable dict of disjoint sorted
     intervals.

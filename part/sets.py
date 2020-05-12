@@ -17,6 +17,8 @@ from part import atomic, values
 
 class IntervalSet(Set, metaclass=ABCMeta):
     """
+    Interval Set class.
+
     The :class:`IntervalSet` abstract class is designed to hold disjoint sorted
     intervals. It implements the :class:`Set <python:typing.Set>` protocol. It is
     implemented in two concrete classes:
@@ -116,6 +118,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
     def __lt__(self, other):
         """
+        Return self<*other*.
+
         Test whether the set is a proper subset of *other*, that is, self <= *other* and
         self != *other*.
 
@@ -184,6 +188,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
     def __gt__(self, other):
         """
+        Return self>*other*.
+
         Test whether the set is a proper superset of *other*, that is,
         self >= *other* and self != *other*.
 
@@ -605,6 +611,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
     def isdisjoint(self, other: Iterable[atomic.IntervalValue]) -> bool:
         """
+        Return the disjointness between self and *other*.
+
         Return :data:`True <python:True>` if the set has no elements in common with
         *other*. Sets are disjoint if and only if their intersection is the empty set.
 
@@ -981,6 +989,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
 class FrozenIntervalSet(IntervalSet):
     """
+    Frozen Interval Set class.
+
     The :class:`FrozenIntervalSet` class (which inherits from the :class:`IntervalSet`
     class) is designed to hold frozen disjoint intervals.
     """
@@ -992,6 +1002,8 @@ class FrozenIntervalSet(IntervalSet):
         self, iterable: Optional[Iterable[atomic.IntervalValue]] = None
     ) -> None:
         """
+        Initialize a :class:`FrozenIntervalSet` instance.
+
         Arguments
         ---------
             iterable: :class:`Iterable <python:typing.Iterable>`
@@ -1018,8 +1030,9 @@ class FrozenIntervalSet(IntervalSet):
 
     def __hash__(self) -> int:
         """
-        A :class:`FrozenIntervalSet` instance is hashable. It can be used as key in
-        dictionaries.
+        A :class:`FrozenIntervalSet` instance is hashable.
+
+        It can be used as key in dictionaries.
         """
         if self._hash is None:
             self._hash = hash(tuple(self._intervals))
@@ -1118,6 +1131,8 @@ class FrozenIntervalSet(IntervalSet):
 # pylint: disable=too-many-ancestors
 class MutableIntervalSet(IntervalSet, MutableSet):
     """
+    Mutable Interval Set class.
+
     The :class:`MutableIntervalSet` class (which inherits from the :class:`IntervalSet`
     class) is designed to hold mutable disjoint sorted intervals.
     """
@@ -1129,6 +1144,8 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         self, iterable: Optional[Iterable[atomic.IntervalValue]] = None
     ) -> None:
         """
+        Initialize a :class:`MutableIntervalSet` instance.
+
         Arguments
         ---------
             iterable: :class:`Iterable <python:typing.Iterable>`
@@ -1442,8 +1459,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
 
     def remove(self, value: atomic.IntervalValue) -> None:
         """
-        Remove element *value* from the set. Raises KeyError if *value* is not
-        contained in the set.
+        Remove element *value* from the set.
 
         Arguments
         ---------

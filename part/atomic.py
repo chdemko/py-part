@@ -261,8 +261,7 @@ class Atomic(ABC):
     @abstractmethod
     def meets(self, other: "Atomic", strict: bool = True) -> bool:
         """
-        The :meth:`meets` method return :data:`True <python:True>` if the subset
-        meets the *other*.
+        Return :data:`True <python:True>` if the subset meets the *other*.
 
         Arguments
         ---------
@@ -283,8 +282,7 @@ class Atomic(ABC):
     @abstractmethod
     def overlaps(self, other: "Atomic", strict: bool = True) -> bool:
         """
-        The :meth:`overlaps` method return :data:`True <python:True>` if the subset
-        overlaps the *other*.
+        Return :data:`True <python:True>` if the subset overlaps the *other*.
 
         Arguments
         ---------
@@ -305,8 +303,7 @@ class Atomic(ABC):
     @abstractmethod
     def starts(self, other: "Atomic", strict: bool = True) -> bool:
         """
-        The :meth:`starts` method return :data:`True <python:True>` if the subset
-        starts the *other*.
+        Return :data:`True <python:True>` if the subset starts the *other*.
 
         Arguments
         ---------
@@ -327,8 +324,7 @@ class Atomic(ABC):
     @abstractmethod
     def during(self, other: "Atomic", strict: bool = True) -> bool:
         """
-        The :meth:`during` method return :data:`True <python:True>` if the subset
-        is during the *other*.
+        Return :data:`True <python:True>` if the subset is during the *other*.
 
         Arguments
         ---------
@@ -349,8 +345,7 @@ class Atomic(ABC):
     @abstractmethod
     def finishes(self, other: "Atomic", strict: bool = True) -> bool:
         """
-        The :meth:`finishes` method return :data:`True <python:True>` if the subset
-        finishes the *other*.
+        Return :data:`True <python:True>` if the subset finishes the *other*.
 
         Arguments
         ---------
@@ -371,6 +366,8 @@ class Atomic(ABC):
 
 class Empty(Singleton, Atomic):
     """
+    Empty set class.
+
     The :class:`Empty` class (which inherits from the :class:`Atomic` class) represent
     the empty set. There is only one instance of this class called
     :const:`EMPTY <Empty>`.
@@ -442,6 +439,8 @@ EMPTY = Empty()
 
 class Mark(namedtuple("Mark", ["value", "type"])):
     """
+    Mark class.
+
     The :class:`Mark` is used to represent a boundary in an :class:`Interval`. It
     contains two fields:
 
@@ -481,6 +480,8 @@ class Mark(namedtuple("Mark", ["value", "type"])):
 
 class Interval(Atomic):
     """
+    Interval class.
+
     The :class:`Interval` class (which inherits from the :class:`Atomic` class) is
     designed to hold range values. `Allen's interval
     algebra <https://en.wikipedia.org/wiki/Allen's_interval_algebra>`_ has been
@@ -571,8 +572,9 @@ class Interval(Atomic):
         upper_closed: Optional[bool] = None,
     ) -> None:
         """
-        Initialize an :class:`Interval` instance. By default, an interval is closed
-        to the left and open to the right.
+        Initialize an :class:`Interval` instance.
+
+        By default, an interval is closed to the left and open to the right.
 
         Keyword Arguments
         -----------------
@@ -920,8 +922,7 @@ class Interval(Atomic):
 
     def meets(self, other: Atomic, strict: bool = True) -> bool:
         """
-        The :meth:`meets` method return :data:`True <python:True>` if the subset
-        meets the *other*.
+        Return :data:`True <python:True>` if the subset meets the *other*.
 
         Arguments
         ---------
@@ -959,8 +960,7 @@ class Interval(Atomic):
 
     def overlaps(self, other: Atomic, strict: bool = True) -> bool:
         """
-        The :meth:`overlaps` method return :data:`True <python:True>` if the subset
-        overlaps the *other*.
+        Return :data:`True <python:True>` if the subset overlaps the *other*.
 
         Arguments
         ---------
@@ -996,8 +996,7 @@ class Interval(Atomic):
 
     def starts(self, other: Atomic, strict: bool = True) -> bool:
         """
-        The :meth:`starts` method return :data:`True <python:True>` if the subset
-        starts the *other*.
+        Return :data:`True <python:True>` if the subset starts the *other*.
 
         Arguments
         ---------
@@ -1035,8 +1034,7 @@ class Interval(Atomic):
 
     def during(self, other: Atomic, strict: bool = True) -> bool:
         """
-        The :meth:`during` method return :data:`True <python:True>` if the subset
-        is during the *other*.
+        Return :data:`True <python:True>` if the subset is during the *other*.
 
         Arguments
         ---------
@@ -1072,8 +1070,7 @@ class Interval(Atomic):
 
     def finishes(self, other: Atomic, strict: bool = True) -> bool:
         """
-        The :meth:`finishes` method return :data:`True <python:True>` if the subset
-        finishes the *other*.
+        Return :data:`True <python:True>` if the subset finishes the *other*.
 
         Arguments
         ---------
