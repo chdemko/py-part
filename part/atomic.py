@@ -36,15 +36,15 @@ class Atomic(ABC):
         raise NotImplementedError
 
     def __eq__(self, other) -> bool:
-        """Return self==*other*."""
+        """Return self==other."""
         return self is other or self.__compare(other)
 
     def __lt__(self, other) -> bool:
-        """Return self<*other*."""
+        """Return self<other."""
         return self.__compare(other)
 
     def __gt__(self, other) -> bool:
-        """Return self>*other*."""
+        """Return self>other."""
         return self.__compare(other)
 
     @abstractmethod
@@ -387,25 +387,25 @@ class Empty(Singleton, Atomic):
         return False
 
     def __or__(self, other) -> "part.FrozenIntervalSet":
-        """Return self|*other*."""
+        """Return self|other."""
         if not isinstance(other, part.Atomic):
             return super().__or__(other)
         return part.FrozenIntervalSet([other])  # type: ignore
 
     def __and__(self, other) -> "part.FrozenIntervalSet":
-        """Return self^*other*."""
+        """Return self^other."""
         if not isinstance(other, part.Atomic):
             return super().__and__(other)
         return part.FrozenIntervalSet()
 
     def __sub__(self, other) -> "part.FrozenIntervalSet":
-        """Return self-*other*."""
+        """Return self-other."""
         if not isinstance(other, part.Atomic):
             return super().__sub__(other)
         return part.FrozenIntervalSet()
 
     def __xor__(self, other) -> "part.FrozenIntervalSet":
-        """Return self^*other*."""
+        """Return self^other."""
         if not isinstance(other, part.Atomic):
             return super().__xor__(other)
         return part.FrozenIntervalSet([other])  # type: ignore
@@ -627,7 +627,7 @@ class Interval(Atomic):
         )
 
     def __eq__(self, other) -> bool:
-        """Return self==*other*."""
+        """Return self==other."""
         if super().__eq__(other) is NotImplemented:
             return NotImplemented
         if other is EMPTY:

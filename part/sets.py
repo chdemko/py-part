@@ -70,7 +70,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
         return " | ".join(str(interval) for interval in self)
 
     def __eq__(self, other):
-        """Return self==*other*."""
+        """Return self==other."""
         if not isinstance(other, IntervalSet):
             return NotImplemented
         # pylint: disable=protected-access
@@ -114,7 +114,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
     def __lt__(self, other):
         """
-        Return self<*other*.
+        Return self<other.
 
         Test whether the set is a proper subset of *other*, that is, self <= *other* and
         self != *other*.
@@ -184,7 +184,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
     def __gt__(self, other):
         """
-        Return self>*other*.
+        Return self>other.
 
         Test whether the set is a proper superset of *other*, that is,
         self >= *other* and self != *other*.
