@@ -95,9 +95,8 @@ class IntervalDict(collections.abc.Mapping, metaclass=ABCMeta):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to search.
 
@@ -238,9 +237,8 @@ class IntervalDict(collections.abc.Mapping, metaclass=ABCMeta):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to search
             strict: bool

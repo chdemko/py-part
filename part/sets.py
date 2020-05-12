@@ -936,9 +936,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to search
             strict: bool
@@ -1007,9 +1006,8 @@ class FrozenIntervalSet(IntervalSet):
 
                 * :class:`Atomic`
                 * :class:`Tuple[Any, Any] <python:tuple>`
-                * :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`
                 * :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`
-                * :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                * :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
 
         Examples
@@ -1043,9 +1041,8 @@ class FrozenIntervalSet(IntervalSet):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to search.
 
@@ -1149,9 +1146,8 @@ class MutableIntervalSet(IntervalSet, MutableSet):
 
                 * :class:`Atomic`
                 * :class:`Tuple[Any, Any] <python:tuple>`
-                * :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`
                 * :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`
-                * :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                * :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
 
         Examples
@@ -1174,9 +1170,8 @@ class MutableIntervalSet(IntervalSet, MutableSet):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to search.
 
@@ -1430,9 +1425,8 @@ class MutableIntervalSet(IntervalSet, MutableSet):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to add.
 
@@ -1462,9 +1456,8 @@ class MutableIntervalSet(IntervalSet, MutableSet):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to remove
 
@@ -1505,9 +1498,8 @@ class MutableIntervalSet(IntervalSet, MutableSet):
             value: \
                     :class:`Atomic`, \
                     :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any] <python:tuple>`, \
                     :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Optional[bool], Any, Any, Optional[bool]] \
+                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to discard.
 

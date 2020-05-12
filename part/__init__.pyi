@@ -64,9 +64,8 @@ EMPTY: Empty = ...
 
 IntervalTuple = Union[
     Tuple[Any, Any],
-    Tuple[Optional[bool], Any, Any],
     Tuple[Any, Any, Optional[bool]],
-    Tuple[Optional[bool], Any, Any, Optional[bool]],
+    Tuple[Any, Any, Optional[bool], Optional[bool]],
 ]
 
 class Mark:
