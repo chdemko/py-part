@@ -3,7 +3,7 @@
 
 class Singleton:
     """
-    The :class:`Singleton` is used to force a unique instantiation.
+    The :class:`Singleton` class is used to force a unique instantiation.
     """
 
     _instance = None
@@ -14,4 +14,7 @@ class Singleton:
         return cls._instance
 
     def __hash__(self) -> int:
+        """
+        Return hash(self).
+        """
         return id(self)

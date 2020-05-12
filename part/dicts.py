@@ -4,6 +4,7 @@ import collections
 from abc import ABCMeta, abstractmethod
 from typing import Union, Mapping, Iterable, Tuple, Any, List, Optional, Iterator
 
+# pylint: disable=import-error
 from sortedcontainers import SortedSet  # type: ignore
 
 from part import atomic

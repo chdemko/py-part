@@ -7,7 +7,7 @@ from abc import abstractmethod, ABCMeta
 from collections.abc import Set, MutableSet
 from typing import Optional, Iterable, Iterator, List
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,import-error
 from sortedcontainers import SortedSet  # type: ignore
 
 from part import atomic, values

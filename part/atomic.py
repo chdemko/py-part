@@ -615,6 +615,9 @@ class Interval(Atomic):
         )
 
     def __eq__(self, other) -> bool:
+        """
+        Return self==other.
+        """
         if super().__eq__(other) is NotImplemented:
             return NotImplemented
         if other is EMPTY:
@@ -761,6 +764,9 @@ class Interval(Atomic):
         return part.FrozenIntervalSet([result])  # type: ignore
 
     def __sub__(self, other) -> "part.FrozenIntervalSet":
+        """
+        Return self-other.
+        """
         if not isinstance(other, Atomic):
             return super().__sub__(other)
         return part.FrozenIntervalSet(  # type: ignore
