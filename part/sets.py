@@ -66,15 +66,11 @@ class IntervalSet(Set, metaclass=ABCMeta):
             self._append(current)
 
     def __str__(self) -> str:
-        """
-        Return str(self).
-        """
+        """Return str(self)."""
         return " | ".join(str(interval) for interval in self)
 
     def __eq__(self, other):
-        """
-        Return self==other.
-        """
+        """Return self==*other*."""
         if not isinstance(other, IntervalSet):
             return NotImplemented
         # pylint: disable=protected-access

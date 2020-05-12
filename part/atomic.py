@@ -30,34 +30,24 @@ class Atomic(ABC):
 
     @abstractmethod
     def __str__(self) -> str:
-        """
-        Return str(self).
-        """
+        """Return str(self)."""
         raise NotImplementedError
 
     def __eq__(self, other) -> bool:
-        """
-        Return self==other.
-        """
+        """Return self==*other*."""
         return self is other or self.__compare(other)
 
     def __lt__(self, other) -> bool:
-        """
-        Return self<other.
-        """
+        """Return self<*other*."""
         return self.__compare(other)
 
     def __gt__(self, other) -> bool:
-        """
-        Return self>other.
-        """
+        """Return self>*other*."""
         return self.__compare(other)
 
     @abstractmethod
     def __hash__(self) -> int:
-        """
-        Return hash(self).
-        """
+        """Return hash(self)."""
         raise NotImplementedError
 
     @abstractmethod

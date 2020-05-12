@@ -613,9 +613,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
             del self._intervals[start:stop]
 
     def clear(self) -> None:
-        """
-        Remove all items from self (same as del self[:]).
-        """
+        """Remove all items from self (same as del self[:])."""
         self._intervals = SortedSet()
         self._mapping = {}
 
