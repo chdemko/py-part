@@ -506,6 +506,23 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
             raise TypeError(f"{type(iterable)} object is not iterable")
 
     def __getitem__(self, key: Union[slice, atomic.IntervalValue]) -> Any:
+        """
+        Return a value using either a slice or an interval value.
+
+        Arguments
+        ---------
+            key: Union[IntervalValue, slice]
+                The interval requested.
+
+        Returns
+        -------
+            The found value
+
+        Raises
+        ------
+            KeyError
+                If the *key* is out of range.
+        """
         try:
             return super().__getitem__(key)
         except KeyError:

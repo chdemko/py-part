@@ -376,9 +376,11 @@ class Empty(Singleton, Atomic):
     __slots__ = ()
 
     def __str__(self) -> str:
+        """Return str(self)."""
         return ""
 
     def __hash__(self) -> int:
+        """Return hash(self)."""
         return id(self)
 
     def __bool__(self) -> bool:
@@ -393,26 +395,31 @@ class Empty(Singleton, Atomic):
         return False
 
     def __or__(self, other) -> "part.FrozenIntervalSet":
+        """Return self|*other*."""
         if not isinstance(other, part.Atomic):
             return super().__or__(other)
         return part.FrozenIntervalSet([other])  # type: ignore
 
     def __and__(self, other) -> "part.FrozenIntervalSet":
+        """Return self^*other*."""
         if not isinstance(other, part.Atomic):
             return super().__and__(other)
         return part.FrozenIntervalSet()
 
     def __sub__(self, other) -> "part.FrozenIntervalSet":
+        """Return self-*other*."""
         if not isinstance(other, part.Atomic):
             return super().__sub__(other)
         return part.FrozenIntervalSet()
 
     def __xor__(self, other) -> "part.FrozenIntervalSet":
+        """Return self^*other*."""
         if not isinstance(other, part.Atomic):
             return super().__xor__(other)
         return part.FrozenIntervalSet([other])  # type: ignore
 
     def __invert__(self) -> "part.FrozenIntervalSet":
+        """Return ~self."""
         return part.FrozenIntervalSet([FULL])  # type: ignore
 
     def meets(self, other: Atomic, strict: bool = True) -> bool:
@@ -452,6 +459,7 @@ class Mark(namedtuple("Mark", ["value", "type"])):
     """
 
     def __str__(self) -> str:
+        """Return str(self)."""
         return (
             f"{self.value}{'+' if self.type == 1 else '-' if self.type == -1 else ''}"
         )
@@ -614,6 +622,7 @@ class Interval(Atomic):
         self._upper = Mark(value=upper_value, type=0 if upper_closed else -1)
 
     def __str__(self) -> str:
+        """Return str(self)."""
         return (
             f"{'[' if self._lower.type == 0 else '('}"
             f"{repr(self._lower.value)};{repr(self._upper.value)}"
@@ -621,6 +630,7 @@ class Interval(Atomic):
         )
 
     def __eq__(self, other) -> bool:
+        """Return self==*other*."""
         if super().__eq__(other) is NotImplemented:
             return NotImplemented
         if other is EMPTY:
@@ -688,6 +698,7 @@ class Interval(Atomic):
         return other is not EMPTY and self._lower > other.upper
 
     def __hash__(self) -> int:
+        """Return hash(self)."""
         return hash((self._lower, self._upper))
 
     def __bool__(self) -> bool:
