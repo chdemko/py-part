@@ -484,8 +484,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
     def _bisect_left(self, search, lo=0, hi=None):  #  pylint: disable=invalid-name
         raise NotImplementedError
 
-    def _intersection(self, *args) -> Iterator[atomic.Interval]:
-        # pylint: disable=protected-access,no-member
+    @staticmethod
+    def _items(*args):
         items = []
         for intervals in args:
             if intervals is None:
@@ -493,6 +493,11 @@ class IntervalSet(Set, metaclass=ABCMeta):
             if not isinstance(intervals, IntervalSet):
                 intervals = FrozenIntervalSet(intervals)
             items.append(intervals)
+        return items
+
+    def _intersection(self, *args) -> Iterator[atomic.Interval]:
+        # pylint: disable=protected-access,no-member
+        items = IntervalSet._items(*args)
 
         if not self:
             return
@@ -547,13 +552,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
     def _union(self, *args) -> Iterator[atomic.Interval]:
         # pylint: disable=protected-access,no-member
-        items = []
-        for intervals in args:
-            if intervals is None:
-                raise TypeError("None object is not iterable")
-            if not isinstance(intervals, IntervalSet):
-                intervals = FrozenIntervalSet(intervals)
-            items.append(intervals)
+        items = IntervalSet._items(*args)
 
         # prepare a heap of (inf, index, intervals, cursor)
         heap = []
