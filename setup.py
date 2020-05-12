@@ -24,7 +24,7 @@ with open("README.md", "r") as stream:
 
 setuptools.setup(
     name="part",
-    version="0.0.1",
+    version="0.0.2",
     author="Christophe Demko",
     author_email="chdemko@gmail.com",
     description="An interval library package",
