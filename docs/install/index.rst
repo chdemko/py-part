@@ -2,6 +2,20 @@
 Installation
 ============
 
+Install *py-part* using the command
+
+.. code-block:: console
+    :class: admonition
+
+    $ pip install part
+
+To upgrade to the most recent release, use
+
+.. code-block:: console
+    :class: admonition
+
+    $ pip install --upgrade part
+
 To upgrade to the current ``develop`` branch, use
 
 .. code-block:: console

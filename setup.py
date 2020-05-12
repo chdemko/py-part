@@ -30,7 +30,7 @@ setuptools.setup(
     description="An interval library package",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/chdemko/part",
+    url="https://github.com/chdemko/py-part",
     include_package_data=True,
     package_data={"part": ["__init__.pyi", "py.typed"]},
     packages=["part"],
@@ -40,7 +40,17 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: BSD License",
+        # Specify the OS
         "Operating System :: OS Independent",
+        # How mature is this project? Common values are
+        #   3 - Alpha
+        #   4 - Beta
+        #   5 - Production/Stable
+        "Development Status :: 3 - Alpha",
+        # Indicate who your project is intended for
+        "Intended Audience :: Developers",
+        # Natural language used
+        "Natural Language :: English",
     ],
     python_requires=">=3.6",
     install_requires=["sortedcontainers>=2.1"],
