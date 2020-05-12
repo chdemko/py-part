@@ -2,7 +2,11 @@
 
 
 class Singleton:
-    """The :class:`Singleton` class is used to force a unique instantiation."""
+    """
+    Singleton class.
+
+    The :class:`Singleton` class is used to force a unique instantiation.
+    """
 
     _instance = None
 

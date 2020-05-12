@@ -415,18 +415,23 @@ class Empty(Singleton, Atomic):
         return part.FrozenIntervalSet([FULL])  # type: ignore
 
     def meets(self, other: Atomic, strict: bool = True) -> bool:
+        """See :meth:`Atomic.meets`."""
         return Atomic._compare(other)
 
     def overlaps(self, other: Atomic, strict: bool = True) -> bool:
+        """See :meth:`Atomic.overlaps`."""
         return Atomic._compare(other)
 
     def starts(self, other: Atomic, strict: bool = True) -> bool:
+        """See :meth:`Atomic.starts`."""
         return Atomic._compare(other)
 
     def during(self, other: Atomic, strict: bool = True) -> bool:
+        """See :meth:`Atomic.during`."""
         return Atomic._compare(other)
 
     def finishes(self, other: Atomic, strict: bool = True) -> bool:
+        """See :meth:`Atomic.finishes`."""
         return Atomic._compare(other)
 
 
@@ -502,7 +507,7 @@ class Interval(Atomic):
         upper_closed: Optional[bool] = None,
     ) -> Atomic:
         """
-        Creates an :class:`Atomic` instance.
+        Create an :class:`Atomic` instance.
 
         Keyword Arguments
         -----------------
@@ -868,7 +873,7 @@ class Interval(Atomic):
     @staticmethod
     def upper_limit(value: Optional[Any] = None, closed: Optional[bool] = None):
         """
-        Creates an interval from an upper limit.
+        Create an interval from an upper limit.
 
         Arguments
         ---------
@@ -897,7 +902,7 @@ class Interval(Atomic):
     @staticmethod
     def lower_limit(value: Optional[Any] = None, closed: Optional[bool] = True):
         """
-        Creates an interval from a lower limit.
+        Create an interval from a lower limit.
 
         Arguments
         ---------
