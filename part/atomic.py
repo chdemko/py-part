@@ -786,9 +786,9 @@ class Interval(Atomic):
             >>> b = Atomic.from_tuple((15, 30))
             >>> c = Atomic.from_tuple((30, 40))
             >>> print(a - b)
-            [15;20)
-            >>> print(a - c)
             (10;15)
+            >>> print(a - c)
+            (10;20)
         """
         if not isinstance(other, Atomic):
             return super().__sub__(other)
