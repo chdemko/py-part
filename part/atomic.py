@@ -20,6 +20,8 @@ IntervalTuple = Union[
 
 class Atomic(ABC):
     """
+    Atomic class.
+
     The :class:`Atomic` class represents an abstract version of two concrete classes:
 
     * :class:`Empty`
@@ -161,7 +163,7 @@ class Atomic(ABC):
     @staticmethod
     def from_tuple(item: IntervalTuple):
         """
-        Creates an interval from a tuple
+        Create an interval from a tuple.
 
         Arguments
         ---------
@@ -221,7 +223,7 @@ class Atomic(ABC):
     @staticmethod
     def from_value(value: Any):
         """
-        Creates an interval from any value
+        Create an interval from any value.
 
         Arguments
         ---------
