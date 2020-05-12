@@ -13,9 +13,10 @@ from part import atomic
 
 class IntervalDict(collections.abc.Mapping, metaclass=ABCMeta):
     """
-    The :class:`IntervalDict` abstract class is designed to hold dict of disjoint sorted
-    intervals. It implements the :class:`Mapping <python:typing.Mapping>` protocol.
-    It is implemented in two concrete classes:
+    The :class:`IntervalDict` abstract class can hold dict of disjoint sorted intervals.
+
+    It implements the :class:`Mapping <python:typing.Mapping>` protocol. It is
+    implemented in two concrete classes:
 
     * :class:`FrozenIntervalDict`
     * :class:`MutableIntervalDict`
@@ -24,6 +25,7 @@ class IntervalDict(collections.abc.Mapping, metaclass=ABCMeta):
     __slots__ = ("_intervals", "_mapping")
 
     def __init__(self) -> None:
+        """Initialize :class:`IntervalDict` instances."""
         self._intervals = None
         self._mapping: dict = {}
 
@@ -370,6 +372,17 @@ class FrozenIntervalDict(IntervalDict):
             ]
         ] = None,
     ) -> None:
+        """
+        Initialize a :class:`FrozenIntervalDict` instance.
+
+        Arguments
+        ---------
+            iterable:
+                :class:`Union[Mapping, Iterable[Tuple[atomic.IntervalValue, Any]]] \
+                    <python:typing.Union>`, \
+                optional
+                An optional iterable.
+        """
         super().__init__()
         self._hash: Optional[int] = None
         interval_dict = MutableIntervalDict(iterable)
