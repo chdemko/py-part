@@ -1,4 +1,5 @@
-# pylint: disable=missing-module-docstring
+"""Interval dictionaries module."""
+
 import bisect
 import collections
 from abc import ABCMeta, abstractmethod

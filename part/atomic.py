@@ -1,4 +1,6 @@
-# pylint: disable=missing-module-docstring,cyclic-import,too-many-lines
+"""Atomic values module."""
+
+# pylint: disable=cyclic-import,too-many-lines
 
 from abc import ABC, abstractmethod
 from collections import namedtuple

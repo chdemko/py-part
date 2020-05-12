@@ -1,4 +1,6 @@
-# pylint: disable=missing-module-docstring, too-many-lines
+"""Interval sets module."""
+
+# pylint: disable=too-many-lines
 
 import bisect
 import copy
