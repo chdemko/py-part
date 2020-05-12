@@ -57,6 +57,7 @@ setuptools.setup(
             "doc8",
             "Pygments>=2.5",
             "pylint>=2.4",
+            "pep257",
             "mypy",
             "black",
             "pytest-cov",
