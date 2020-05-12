@@ -5,8 +5,9 @@ from .utils import Singleton
 
 class PositiveInfinity(Singleton):
     """
-    The :class:`PositiveInfinity` represents the positive infinity value.
+    Positive infinity value.
 
+    The :class:`PositiveInfinity` class represents the positive infinity value.
     It exists only one instance of this class called :const:`INFINITY`.
     """
 
@@ -43,8 +44,9 @@ class PositiveInfinity(Singleton):
 
 class NegativeInfinity(Singleton):
     """
-    The :class:`NegativeInfinity` represents the negative infinity value.
+    Negative infinity value.
 
+    The :class:`NegativeInfinity` class represents the negative infinity value.
     It exists only one instance of this class called :const:`-INFINITY`.
     """
 
