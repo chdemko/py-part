@@ -314,6 +314,19 @@ class MutableIntervalDictTestCase(unittest.TestCase):
         del a[12:22]
         self.assertEqual(str(a), "{'[10;12)': 1, '[22;25)': 2, '[30;35)': 3}")
 
+        # Test self._stop when interval is empty
+        a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35, True, True): 3})
+        del a[11:35]
+        self.assertEqual(str(a), "{'[10;11)': 1, '[35;35]': 3}")
+        a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35, True, True): 3})
+        del a[21:35]
+        self.assertEqual(str(a), "{'[10;15)': 1, '[20;21)': 2, '[35;35]': 3}")
+        a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35, True, True): 3})
+        del a[31:35]
+        self.assertEqual(
+            str(a), "{'[10;15)': 1, '[20;25)': 2, '[30;31)': 3, '[35;35]': 3}"
+        )
+
     def test_pop(self):
         a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
         self.assertEqual(a.pop((10, 13)), 1)
@@ -397,9 +410,6 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             str(a.compress()), "{'[1;5)': {1}, '[5;20)': {1, 2}, '[20;30)': {1}}"
         )
 
-
-# TODO Verify __setitem__ and __delitem__ for particular cases.
-# BODY When interval added is empty (see specially `_stop` method).
 
 if __name__ == "__main__":
     unittest.main()

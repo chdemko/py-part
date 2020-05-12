@@ -53,10 +53,10 @@ class IntervalDictTestCase(unittest.TestCase):
     def test_select(self):
         a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3, (40, 45): 3})
         self.assertEqual(
-            [str(interval) for interval in a.select((22, 42))], ["[30;35)"],
+            [str(interval) for interval in a.select((22, 42))], ["[30;35)"]
         )
         self.assertEqual(
-            [str(interval) for interval in a.select((22, 37))], ["[30;35)"],
+            [str(interval) for interval in a.select((22, 37))], ["[30;35)"]
         )
         self.assertEqual(
             [str(interval) for interval in a.select((22, 42), strict=False)],
