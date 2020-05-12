@@ -14,7 +14,4 @@ class Singleton:
         return cls._instance
 
     def __hash__(self) -> int:
-        """
-        Return hash(self).
-        """
         return id(self)

@@ -28,6 +28,9 @@ class Atomic(ABC):
 
     @abstractmethod
     def __str__(self) -> str:
+        """
+        Return str(self).
+        """
         raise NotImplementedError
 
     def __eq__(self, other) -> bool:
@@ -50,6 +53,9 @@ class Atomic(ABC):
 
     @abstractmethod
     def __hash__(self) -> int:
+        """
+        Return hash(self).
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -408,7 +414,6 @@ class Empty(Singleton, Atomic):
         return part.FrozenIntervalSet([other])  # type: ignore
 
     def __invert__(self) -> "part.FrozenIntervalSet":
-        """See :meth:`Atomic.__invert__`."""
         return part.FrozenIntervalSet([FULL])  # type: ignore
 
     def meets(self, other: Atomic, strict: bool = True) -> bool:
@@ -605,9 +610,6 @@ class Interval(Atomic):
         self._upper = Mark(value=upper_value, type=0 if upper_closed else -1)
 
     def __str__(self) -> str:
-        """
-        Return str(self).
-        """
         return (
             f"{'[' if self._lower.type == 0 else '('}"
             f"{repr(self._lower.value)};{repr(self._upper.value)}"
@@ -615,9 +617,6 @@ class Interval(Atomic):
         )
 
     def __eq__(self, other) -> bool:
-        """
-        Return self==other.
-        """
         if super().__eq__(other) is NotImplemented:
             return NotImplemented
         if other is EMPTY:
@@ -765,7 +764,29 @@ class Interval(Atomic):
 
     def __sub__(self, other) -> "part.FrozenIntervalSet":
         """
-        Return self-other.
+        Compute the difference of two intervals.
+
+        Arguments
+        ---------
+            other: :class:`Atomic`
+                Another atomic value.
+
+        Returns
+        -------
+            :class:`FrozenIntervalSet`
+                The difference between the interval and the *other*.
+
+        Examples
+        --------
+
+            >>> from part import Atomic
+            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> b = Atomic.from_tuple((15, 30))
+            >>> c = Atomic.from_tuple((30, 40))
+            >>> print(a - b)
+            [15;20)
+            >>> print(a - c)
+            (10;15)
         """
         if not isinstance(other, Atomic):
             return super().__sub__(other)
@@ -776,6 +797,31 @@ class Interval(Atomic):
         )
 
     def __xor__(self, other) -> "part.FrozenIntervalSet":
+        """
+        Compute the symmetric difference of two intervals.
+
+        Arguments
+        ---------
+            other: :class:`Atomic`
+                Another atomic value.
+
+        Returns
+        -------
+            :class:`FrozenIntervalSet`
+                The symmetric difference between the interval and the *other*.
+
+        Examples
+        --------
+
+            >>> from part import Atomic
+            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> b = Atomic.from_tuple((15, 30))
+            >>> c = Atomic.from_tuple((30, 40))
+            >>> print(a ^ b)
+            (10;15) | [20;30)
+            >>> print(a ^ c)
+            (10;20) | [30;40)
+        """
         if not isinstance(other, part.Atomic):
             return super().__xor__(other)
         return part.FrozenIntervalSet(  # type: ignore
