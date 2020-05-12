@@ -408,6 +408,7 @@ class Empty(Singleton, Atomic):
         return part.FrozenIntervalSet([other])  # type: ignore
 
     def __invert__(self) -> "part.FrozenIntervalSet":
+        """See :meth:`Atomic.__invert__`."""
         return part.FrozenIntervalSet([FULL])  # type: ignore
 
     def meets(self, other: Atomic, strict: bool = True) -> bool:
@@ -604,6 +605,9 @@ class Interval(Atomic):
         self._upper = Mark(value=upper_value, type=0 if upper_closed else -1)
 
     def __str__(self) -> str:
+        """
+        Return str(self).
+        """
         return (
             f"{'[' if self._lower.type == 0 else '('}"
             f"{repr(self._lower.value)};{repr(self._upper.value)}"
