@@ -1,4 +1,5 @@
 import unittest
+import operator
 
 from part import MutableIntervalDict, FrozenIntervalSet, Interval, Atomic
 
@@ -420,14 +421,14 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             "{'[1;5)': {1}, '[5;10)': {1, 2}, '[10;20)': {1, 2}, '[20;30)': {1}}",
         )
         a = MutableIntervalDict(default=set)
-        a.update({(1, 10): {1}}, operator=lambda x, y: x.copy() | y)
+        a.update({(1, 10): {1}}, function=lambda x, y: x.copy() | y)
         self.assertEqual(str(a), "{'[1;10)': {1}}")
-        a.update({(5, 20): {2}}, operator=lambda x, y: x.copy() | y)
+        a.update({(5, 20): {2}}, function=lambda x, y: x.copy() | y)
         self.assertEqual(str(a), "{'[1;5)': {1}, '[5;10)': {1, 2}, '[10;20)': {2}}")
 
     def test___or__(self):
         a = MutableIntervalDict(
-            {(10, 15): 1, (20, 25): 2, (30, 35): 3}, update=lambda x, y: x + y
+            {(10, 15): 1, (20, 25): 2, (30, 35): 3}, update=operator.add
         )
         self.assertEqual(
             str(a | MutableIntervalDict({(15, 22): 4})),

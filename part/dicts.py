@@ -487,7 +487,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
             default: :class:`Callable[[], Any] <python:typing.Callable>`, optional
                 The default factory.
             update: :class:`Callable[[Any, Any], Any] <python:typing.Callable>`
-                The update operator.
+                The update function.
 
         Examples
         --------
@@ -620,15 +620,15 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
                 del self._mapping[self._intervals[index]]
             del self._intervals[start:stop]
 
-    def _add(self, interval, value, operator):
-        if operator is None:
+    def _add(self, interval, value, function):
+        if function is None:
             self[interval] = value
         else:
             intervals = sets.FrozenIntervalSet(
                 self.select(interval, strict=False)  # type: ignore
             )
             for another in ((interval & found)[0] for found in intervals):
-                self[another] = operator(self[another], value)
+                self[another] = function(self[another], value)
             for another in sets.FrozenIntervalSet([interval]) - intervals:
                 self[another] = value
 
@@ -705,7 +705,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
             Mapping[atomic.IntervalValue, Any],
             Iterable[Tuple[atomic.IntervalValue, Any]],
         ],
-        operator: Optional[Callable[[Any, Any], Any]] = None,
+        function: Optional[Callable[[Any, Any], Any]] = None,
         **_dummy,
     ) -> None:
         """
@@ -722,9 +722,9 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
 
         Keyword arguments
         -----------------
-            operator: :class:`Callable[[Any, Any], Any] <python:typing.Callable>`
-                The update operator. This operator overrides the default update
-                operator.
+            function: :class:`Callable[[Any, Any], Any] <python:typing.Callable>`
+                The update function. This function overrides the default update
+                function.
 
         Raises
         ------
@@ -735,26 +735,27 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         --------
 
             >>> from part import MutableIntervalDict
+            >>> import operator
             >>> a = MutableIntervalDict()
-            >>> a.update({(1, 10): 1}, operator=lambda x, y: x + y)
+            >>> a.update({(1, 10): 1}, function=operator.add)
             >>> print(a)
             {'[1;10)': 1}
-            >>> a.update({(5, 20): 2}, operator=lambda x, y: x + y)
+            >>> a.update({(5, 20): 2}, function=operator.add)
             >>> print(a)
             {'[1;5)': 1, '[5;10)': 3, '[10;20)': 2}
-            >>> a.update({(10, 30): 3}, operator=lambda x, y: x + y)
+            >>> a.update({(10, 30): 3}, function=operator.add)
             >>> print(a)
             {'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}
         """
-        if operator is None:
-            operator = self._update
+        if function is None:
+            function = self._update
         for other in args:
             if isinstance(other, collections.abc.Mapping):
                 for key, value in other.items():
-                    self._add(atomic.Atomic.from_value(key), value, operator)
+                    self._add(atomic.Atomic.from_value(key), value, function)
             elif isinstance(other, collections.abc.Iterable):
                 for key, value in other:  # type: ignore
-                    self._add(atomic.Atomic.from_value(key), value, operator)
+                    self._add(atomic.Atomic.from_value(key), value, function)
             else:
                 raise TypeError(f"{type(other)} object is not iterable")
 
