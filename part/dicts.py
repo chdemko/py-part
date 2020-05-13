@@ -236,7 +236,7 @@ class IntervalDict(collections.abc.Mapping, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalDict
-            >>> a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
+            >>> a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
             >>> print(a)
             {'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}
             >>> b = a.copy()
@@ -492,7 +492,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         Examples
         --------
 
-            >>> from part import MutableIntervalDict, FrozenIntervalSet, Interval
+            >>> from part import MutableIntervalDict
             >>> a = MutableIntervalDict(update=lambda x, y: x.copy() | y)
             >>> a.update({(1, 10): {1}})
             >>> print(a)
@@ -558,7 +558,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         --------
 
             >>> from part import FrozenIntervalDict
-            >>> a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
+            >>> a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
             >>> print(a)
             {'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}
             >>> a[12] = 4
@@ -599,7 +599,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         --------
 
             >>> from part import FrozenIntervalDict
-            >>> a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
+            >>> a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
             >>> print(a)
             {'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}
             >>> del a[12]
