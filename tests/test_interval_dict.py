@@ -5,9 +5,11 @@ from part import FrozenIntervalDict, EMPTY
 
 class IntervalDictTestCase(unittest.TestCase):
     def test___init__(self):
+        a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
+        self.assertEqual(str(a), "{'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}")
+        a = FrozenIntervalDict({(10, 15): 1, (14, 25): 1, (30, 35): 2, (33, 45): 2})
         self.assertEqual(
-            str(FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})),
-            "{'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}",
+            str(a), "{'[10;14)': 1, '[14;25)': 1, '[30;33)': 2, '[33;45)': 2}"
         )
 
     def test___hash__(self):
@@ -44,6 +46,15 @@ class IntervalDictTestCase(unittest.TestCase):
             _ = a[(11, 16)]
         with self.assertRaises(ValueError):
             _ = a[11:16:1]
+
+    def test___or__(self):
+        a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
+        self.assertEqual(
+            str(a | FrozenIntervalDict({(15, 22): 4})),
+            "{'[10;15)': 1, '[15;22)': 4, '[22;25)': 2, '[30;35)': 3}",
+        )
+        with self.assertRaises(TypeError):
+            a | None
 
     def test_copy(self):
         a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})

@@ -1,7 +1,9 @@
 """
 The :mod:`part` package is designed to maintain subsets of sorted spaces.
 
-It defines several classes:
+It defines several classes.
+
+For atomic values:
 
 * :class:`Atomic` which represents any convex subset of a totally ordered space;
 * :class:`Empty` which represents the empty subset. There is only one instance of
@@ -9,9 +11,18 @@ It defines several classes:
 * :class:`Interval` which represents a non-empty subset of a totally ordered space.
   There is a special instance representing the whole space called
   :const:`FULL <Interval>`;
+
+For set classes:
+
 * :class:`IntervalSet` is an abstract class representing all interval sets;
 * :class:`FrozenIntervalSet` is a frozen version of :class:`IntervalSet`;
 * :class:`MutableIntervalSet` is a mutable version of :class:`IntervalSet`.
+
+For dictionary classes:
+
+* :class:`IntervalDict` is an abstract class representing all interval dictionaries;
+* :class:`FrozenIntervalDict` is a frozen version of :class:`IntervalDict`;
+* :class:`MutableIntervalDict` is a mutable version of :class:`IntervalDict`.
 
 It also defines two constants:
 
