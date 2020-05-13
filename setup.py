@@ -23,7 +23,7 @@ with open("README.md", "r") as stream:
     long_description = stream.read()
 
 setuptools.setup(
-    name="part",
+    name="py-part",
     version="0.0.2",
     author="Christophe Demko",
     author_email="chdemko@gmail.com",

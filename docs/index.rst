@@ -2,7 +2,7 @@
 Part library
 ============
 
-*part* [#logo]_ is a library for managing intervals, interval sets and
+*py-part* [#logo]_ is a library for managing intervals, interval sets and
 interval dictionaries.
 
 ..  toctree::

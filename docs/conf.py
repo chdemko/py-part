@@ -132,8 +132,8 @@ html_sidebars = {
     ]
 }
 
-html_favicon = "part.ico"
-html_logo = "part.svg"
+html_favicon = "py-part.ico"
+html_logo = "py-part.svg"
 
 import nbsphinx
 
