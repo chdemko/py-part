@@ -24,7 +24,7 @@ For dictionary classes:
 * :class:`FrozenIntervalDict` is a frozen version of :class:`IntervalDict`;
 * :class:`MutableIntervalDict` is a mutable version of :class:`IntervalDict`.
 
-It also defines two constants:
+It also defines three constants:
 
 * :const:`INFINITY` to hold the infinity value. (-:const:`INFINITY` is also a valid
   expression);
