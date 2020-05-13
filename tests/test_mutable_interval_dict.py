@@ -438,7 +438,7 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             a | None
 
     def test___ior__(self):
-        a = MutableIntervalDict(default=set, update=lambda x, y: x.copy() | y)
+        a = MutableIntervalDict(update=lambda x, y: x.copy() | y)
         a |= MutableIntervalDict({(1, 10): {1}})
         self.assertEqual(str(a), "{'[1;10)': {1}}")
         a |= MutableIntervalDict({(5, 20): {2}})

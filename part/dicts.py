@@ -493,7 +493,7 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         --------
 
             >>> from part import MutableIntervalDict, FrozenIntervalSet, Interval
-            >>> a = MutableIntervalDict(default=set, update=lambda x, y: x.copy() | y)
+            >>> a = MutableIntervalDict(update=lambda x, y: x.copy() | y)
             >>> a.update({(1, 10): {1}})
             >>> print(a)
             {'[1;10)': {1}}
