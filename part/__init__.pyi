@@ -215,5 +215,5 @@ class MutableIntervalDict(IntervalDict, MutableMapping):
             Iterable[Tuple[IntervalValue, Any]],
         ],
         operator: Optional[Callable[[Any, Any], Any]] = None,
-        **dummy
+        **kwargs
     ) -> None: ...
