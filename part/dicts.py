@@ -722,8 +722,8 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
 
         Keyword arguments
         -----------------
-            update: :class:`Callable[[Any, Any], Any] <python:typing.Callable>`
-                The update operator. Thiis operator overrides the default update
+            operator: :class:`Callable[[Any, Any], Any] <python:typing.Callable>`
+                The update operator. This operator overrides the default update
                 operator.
 
         Raises
