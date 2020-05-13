@@ -43,7 +43,7 @@ Indices and tables
 * :ref:`search`
 
 .. [#logo]
-        The `part icon
+        The `py-part icon
         <https://game-icons.net/1x1/lorc/pie-slice.html>`_
         has been designed by
         `Lorc <http://lorcblog.blogspot.com/>`_ and is distributed

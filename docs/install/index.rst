@@ -7,14 +7,14 @@ Install *py-part* using the command
 .. code-block:: console
     :class: admonition
 
-    $ pip install part
+    $ pip install py-part
 
 To upgrade to the most recent release, use
 
 .. code-block:: console
     :class: admonition
 
-    $ pip install --upgrade part
+    $ pip install --upgrade py-part
 
 To upgrade to the current ``develop`` branch, use
 
