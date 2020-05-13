@@ -557,8 +557,8 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         Examples
         --------
 
-            >>> from part import FrozenIntervalDict
-            >>> a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
+            >>> from part import MutableIntervalDict
+            >>> a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
             >>> print(a)
             {'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}
             >>> a[12] = 4
@@ -598,8 +598,8 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         Examples
         --------
 
-            >>> from part import FrozenIntervalDict
-            >>> a = FrozenIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
+            >>> from part import MutableIntervalDict
+            >>> a = MutableIntervalDict({(10, 15): 1, (20, 25): 2, (30, 35): 3})
             >>> print(a)
             {'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}
             >>> del a[12]
