@@ -44,9 +44,9 @@ Indices and tables
 
 .. [#logo]
         The `part icon
-        <https://www.iconfinder.com/icons/2075835/cusomize_range_refine_scale_icon>`_
+        <https://game-icons.net/1x1/lorc/pie-slice.html>`_
         has been designed by
-        `Becris <https://www.iconfinder.com/becris>`_ and is distributed
+        `Lorc <http://lorcblog.blogspot.com/>`_ and is distributed
         under the
-        `Creative Commons (Attribution 3.0 Unported) <https://creativecommons.org/licenses/by/3.0/>`_
+        `Creative Commons (Attribution 3.0 Unported) <http://creativecommons.org/licenses/by/3.0/>`_
         license.
