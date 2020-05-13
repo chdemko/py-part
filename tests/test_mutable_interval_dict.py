@@ -448,6 +448,11 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             str(a),
             "{'[1;5)': {1}, '[5;10)': {1, 2}, '[10;20)': {1, 2}, '[20;30)': {1}}",
         )
+        a |= MutableIntervalDict({(7, 25): {3}})
+        self.assertEqual(
+            str(a),
+            "{'[1;5)': {1}, '[5;7)': {1, 2}, '[7;10)': {1, 2, 3}, '[10;20)': {1, 2, 3}, '[20;25)': {1, 3}, '[25;30)': {1}}",
+        )
         with self.assertRaises(TypeError):
             a |= None
 

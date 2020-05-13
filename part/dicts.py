@@ -624,12 +624,12 @@ class MutableIntervalDict(IntervalDict, collections.abc.MutableMapping):
         if function is None:
             self[interval] = value
         else:
-            intervals = sets.FrozenIntervalSet(
-                self.select(interval, strict=False)  # type: ignore
-            )
+            intervals = list(self.select(interval, strict=False))
             for another in ((interval & found)[0] for found in intervals):
                 self[another] = function(self[another], value)
-            for another in sets.FrozenIntervalSet([interval]) - intervals:
+            for another in sets.FrozenIntervalSet([interval]) - sets.FrozenIntervalSet(
+                intervals
+            ):
                 self[another] = value
 
     def __or__(self, other) -> "IntervalDict":
