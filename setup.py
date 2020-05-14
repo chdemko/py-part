@@ -24,7 +24,7 @@ with open("README.md", "r") as stream:
 
 setuptools.setup(
     name="py-part",
-    version="0.0.2",
+    version="0.0.3",
     author="Christophe Demko",
     author_email="chdemko@gmail.com",
     description="An interval library package",
