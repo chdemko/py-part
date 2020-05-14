@@ -1,85 +1,91 @@
 import unittest
 
-from part import EMPTY, Interval, FrozenIntervalSet, Atomic
-from part import FULL
+from part import Empty, Interval, FrozenIntervalSet, Atomic
 
 
 class IntervalTestCase(unittest.TestCase):
     def test___bool__(self):
-        self.assertFalse(bool(EMPTY))
+        self.assertFalse(bool(Empty[int]()))
 
     def test___hash__(self):
-        self.assertEqual(hash(EMPTY), id(EMPTY))
+        self.assertEqual(hash(Empty[int]()), id(Empty[int]()))
 
     def test___eq__(self):
-        self.assertEqual(EMPTY, EMPTY)
-        self.assertNotEqual(EMPTY, None)
+        self.assertEqual(Empty[int](), Empty[int]())
+        self.assertNotEqual(Empty[int](), None)
 
     def test___lt__(self):
-        self.assertFalse(EMPTY < EMPTY)
-        self.assertFalse(EMPTY < Interval())
+        self.assertFalse(Empty[int]() < Empty[int]())
+        self.assertFalse(Empty[int]() < Interval[int]())
         with self.assertRaises(TypeError):
-            EMPTY < None
+            Empty[int]() < None
 
     def test___gt__(self):
-        self.assertFalse(EMPTY > EMPTY)
-        self.assertFalse(EMPTY > Interval())
+        self.assertFalse(Empty[int]() > Empty[int]())
+        self.assertFalse(Empty[int]() > Interval[int]())
         with self.assertRaises(TypeError):
-            EMPTY > None
+            Empty[int]() > None
 
     def test___or__(self):
-        self.assertEqual(EMPTY | EMPTY, FrozenIntervalSet())
-        self.assertEqual(EMPTY | Atomic.from_value(5), FrozenIntervalSet([5]))
-        with self.assertRaises(TypeError):
-            EMPTY | None
-
-    def test___and__(self):
-        self.assertEqual(EMPTY & EMPTY, FrozenIntervalSet())
-        self.assertEqual(EMPTY & Atomic.from_value(5), FrozenIntervalSet())
-        with self.assertRaises(TypeError):
-            EMPTY & None
-
-    def test___sub__(self):
-        self.assertEqual(EMPTY - EMPTY, FrozenIntervalSet())
-        self.assertEqual(EMPTY - Atomic.from_value(5), FrozenIntervalSet())
-        with self.assertRaises(TypeError):
-            EMPTY - None
-
-    def test___xor__(self):
-        self.assertEqual(EMPTY ^ EMPTY, FrozenIntervalSet())
+        self.assertEqual(Empty[int]() | Empty[int](), FrozenIntervalSet[int]())
         self.assertEqual(
-            EMPTY ^ Atomic.from_value(5), FrozenIntervalSet([Atomic.from_value(5)])
+            Empty[int]() | Atomic[int].from_value(5), FrozenIntervalSet[int]([5])
         )
         with self.assertRaises(TypeError):
-            EMPTY ^ None
+            Empty[int]() | None
+
+    def test___and__(self):
+        self.assertEqual(Empty[int]() & Empty[int](), FrozenIntervalSet[int]())
+        self.assertEqual(
+            Empty[int]() & Atomic[int].from_value(5), FrozenIntervalSet[int]()
+        )
+        with self.assertRaises(TypeError):
+            Empty[int]() & None
+
+    def test___sub__(self):
+        self.assertEqual(Empty[int]() - Empty[int](), FrozenIntervalSet[int]())
+        self.assertEqual(
+            Empty[int]() - Atomic[int].from_value(5), FrozenIntervalSet[int]()
+        )
+        with self.assertRaises(TypeError):
+            Empty[int]() - None
+
+    def test___xor__(self):
+        self.assertEqual(Empty[int]() ^ Empty[int](), FrozenIntervalSet[int]())
+        self.assertEqual(
+            Empty[int]() ^ Atomic[int].from_value(5),
+            FrozenIntervalSet[int]([Atomic[int].from_value(5)]),
+        )
+        with self.assertRaises(TypeError):
+            Empty[int]() ^ None
 
     def test___invert__(self):
-        self.assertEqual(~EMPTY, FrozenIntervalSet([FULL]))
+        self.assertEqual(~Empty[int](), FrozenIntervalSet[int](~Empty[int]()))
 
     def test_meets(self):
-        self.assertFalse(EMPTY.meets(Interval()))
+        self.assertFalse(Empty[int]().meets(Interval[int]()))
         with self.assertRaises(TypeError):
-            EMPTY.meets(None)
+            Empty[int]().meets(None)
 
     def test_overlaps(self):
-        self.assertFalse(EMPTY.overlaps(Interval()))
+        self.assertFalse(Empty[int]().overlaps(Interval[int]()))
         with self.assertRaises(TypeError):
-            EMPTY.overlaps(None)
+            Empty[int]().overlaps(None)
 
     def test_starts(self):
-        self.assertFalse(EMPTY.starts(Interval()))
+        self.assertFalse(Empty[int]().starts(Interval[int]()))
         with self.assertRaises(TypeError):
-            EMPTY.starts(None)
+            Empty[int]().starts(None)
 
     def test_during(self):
-        self.assertFalse(EMPTY.during(Interval()))
+        self.assertFalse(Empty[int]().during(Interval[int]()))
         with self.assertRaises(TypeError):
-            EMPTY.during(None)
+            Empty[int]().during(None)
 
     def test_finishes(self):
-        self.assertFalse(EMPTY.finishes(Interval()))
+        self.assertFalse(Empty[int]().finishes(Interval[int]()))
         with self.assertRaises(TypeError):
-            EMPTY.finishes(None)
+            Empty[int]().finishes(None)
 
     def test___str__(self):
-        self.assertEqual(str(EMPTY), "")
+        self.assertEqual(str(Empty[int]()), "")

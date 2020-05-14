@@ -1,5 +1,6 @@
 [report]
 exclude_lines =
+    return NotImplemented
     raise NotImplementedError
     import doctest
     doctest.testmod()

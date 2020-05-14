@@ -1,5 +1,5 @@
-Dict classes
-============
+Dictionary classes
+==================
 
 ..  toctree::
 

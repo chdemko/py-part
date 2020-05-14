@@ -6,8 +6,16 @@ import bisect
 import copy
 import heapq
 from abc import abstractmethod, ABCMeta
-from collections.abc import Set, MutableSet
-from typing import Optional, Iterable, Iterator, List
+from typing import (
+    Optional,
+    Iterable,
+    Iterator,
+    List,
+    Generic,
+    AbstractSet,
+    MutableSet,
+    Union,
+)
 
 # pylint: disable=too-few-public-methods,import-error
 from sortedcontainers import SortedSet  # type: ignore
@@ -15,13 +23,15 @@ from sortedcontainers import SortedSet  # type: ignore
 from part import atomic, values
 
 
-class IntervalSet(Set, metaclass=ABCMeta):
+class IntervalSet(
+    Generic[atomic.TO], AbstractSet[atomic.Interval[atomic.TO]], metaclass=ABCMeta
+):
     """
     Interval Set class.
 
     The :class:`IntervalSet` abstract class is designed to hold disjoint sorted
-    intervals. It implements the :class:`Set <python:typing.Set>` protocol. It is
-    implemented in two concrete classes:
+    intervals. It implements the :class:`AbstractSet <python:typing.AbstractSet>`
+    protocol. It is implemented in two concrete classes:
 
     * :class:`FrozenIntervalSet`
     * :class:`MutableIntervalSet`
@@ -31,7 +41,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
     # pylint: disable=too-many-branches
     def __init__(
-        self, iterable: Optional[Iterable[atomic.IntervalValue]] = None
+        self, iterable: Optional[Iterable[atomic.IntervalValue[atomic.TO]]] = None
     ) -> None:
         """
         Initialize an :class:`IntervalSet` instance.
@@ -45,7 +55,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             iterable = []
         intervals = []
         for item in iterable:
-            if item is not atomic.EMPTY:
+            if item:
                 intervals.append(atomic.Atomic.from_value(item))
 
         # pylint: disable=protected-access
@@ -99,8 +109,10 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 9, None), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 9, None), (10, 11, True, True)]
+            ... )
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;2] | [6;7) | (8;9) | [10;11]
             >>> print(b)
@@ -133,8 +145,10 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 9, None), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 9, None), (10, 11, True, True)]
+            ... )
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;2] | [6;7) | (8;9) | [10;11]
             >>> print(b)
@@ -169,8 +183,10 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 9, None), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 9, None), (10, 11, True, True)]
+            ... )
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;2] | [6;7) | (8;9) | [10;11]
             >>> print(b)
@@ -203,8 +219,10 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 9, None), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 9, None), (10, 11, True, True)]
+            ... )
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;2] | [6;7) | (8;9) | [10;11]
             >>> print(b)
@@ -229,7 +247,9 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 9, None), (10, 11, True, True)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 9, None), (10, 11, True, True)]
+            ... )
             >>> len(a)
             4
         """
@@ -257,7 +277,9 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 9, None), (10, 11, True, True)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 9, None), (10, 11, True, True)]
+            ... )
             >>> print(a[0])
             [2;2]
             >>> print(a[2])
@@ -271,7 +293,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             return self.__class__(self._intervals[item])
         return self._intervals[item]
 
-    def __iter__(self) -> Iterator[atomic.Interval]:
+    def __iter__(self) -> Iterator[atomic.Interval[atomic.TO]]:
         """
         Return an iterator over the intervals.
 
@@ -279,7 +301,9 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 9, None), (10, 11, True, True)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 9, None), (10, 11, True, True)]
+            ... )
             >>> print(list(str(interval) for interval in a))
             ['[2;2]', '[6;7)', '(8;9)', '[10;11]']
         """
@@ -308,8 +332,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([(2, 8), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int]([(2, 8), (10, 11, True, True)])
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;8) | [10;11]
             >>> print(b)
@@ -344,8 +368,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([(2, 8), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int]([(2, 8), (10, 11, True, True)])
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;8) | [10;11]
             >>> print(b)
@@ -380,8 +404,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([(2, 8), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int]([(2, 8), (10, 11, True, True)])
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;8) | [10;11]
             >>> print(b)
@@ -416,8 +440,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([(2, 8), (10, 11, True, True)])
-            >>> b = FrozenIntervalSet([(0, 7), (8, 13)])
+            >>> a = FrozenIntervalSet[int]([(2, 8), (10, 11, True, True)])
+            >>> b = FrozenIntervalSet[int]([(0, 7), (8, 13)])
             >>> print(a)
             [2;8) | [10;11]
             >>> print(b)
@@ -442,7 +466,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([(2, 8), (10, 11, True, True)])
+            >>> a = FrozenIntervalSet[int]([(2, 8), (10, 11, True, True)])
             >>> print(a)
             [2;8) | [10;11]
             >>> print(~a)
@@ -454,7 +478,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
                 result._append(interval)
         return result
 
-    def __reversed__(self) -> Iterator[atomic.Interval]:
+    def __reversed__(self) -> Iterator[atomic.Interval[atomic.TO]]:
         """
         Implement the reversed iterator.
 
@@ -465,11 +489,11 @@ class IntervalSet(Set, metaclass=ABCMeta):
         """
         return reversed(self._intervals)  # type: ignore
 
-    def _invert(self) -> Iterator[atomic.Interval]:
-        value = -values.INFINITY
+    def _invert(self) -> Iterator[atomic.Interval[atomic.TO]]:
+        value: Union[atomic.TO, values.NegativeInfinity] = -values.INFINITY
         closed = False
         for interval in self:
-            yield atomic.Atomic.from_tuple(
+            yield atomic.Atomic[atomic.TO].from_tuple(
                 (value, interval.lower_value, closed, not interval.lower_closed)
             )
             value = interval.upper_value
@@ -491,11 +515,11 @@ class IntervalSet(Set, metaclass=ABCMeta):
             if intervals is None:
                 raise TypeError("None object is not iterable")
             if not isinstance(intervals, IntervalSet):
-                intervals = FrozenIntervalSet(intervals)
+                intervals = FrozenIntervalSet[atomic.TO](intervals)
             items.append(intervals)
         return items
 
-    def _intersection(self, *args) -> Iterator[atomic.Interval]:
+    def _intersection(self, *args) -> Iterator[atomic.Interval[atomic.TO]]:
         # pylint: disable=protected-access,no-member
         items = IntervalSet._items(*args)
 
@@ -530,7 +554,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
             # output interval as a tuple if not empty
             if max_inf <= sup:
-                interval = atomic.Interval()
+                interval = atomic.Interval[atomic.TO]()
                 interval._lower = max_inf
                 interval._upper = sup
                 yield interval
@@ -550,7 +574,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             else:
                 return
 
-    def _union(self, *args) -> Iterator[atomic.Interval]:
+    def _union(self, *args) -> Iterator[atomic.Interval[atomic.TO]]:
         # pylint: disable=protected-access,no-member
         items = IntervalSet._items(*args)
 
@@ -579,7 +603,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             # output interval as a tuple if not empty
             if inf > max_sup and not inf.near(max_sup):
                 if min_inf <= max_sup:
-                    interval = atomic.Interval()
+                    interval = atomic.Interval[atomic.TO]()
                     interval._lower = min_inf
                     interval._upper = max_sup
                     yield interval
@@ -599,12 +623,12 @@ class IntervalSet(Set, metaclass=ABCMeta):
                 heapq.heappop(heap)
 
         if min_inf <= max_sup:
-            interval = atomic.Interval()
+            interval = atomic.Interval[atomic.TO]()
             interval._lower = min_inf
             interval._upper = max_sup
             yield interval
 
-    def isdisjoint(self, other: Iterable[atomic.IntervalValue]) -> bool:
+    def isdisjoint(self, other: Iterable[atomic.IntervalValue[atomic.TO]]) -> bool:
         """
         Return the disjointness between self and *other*.
 
@@ -630,7 +654,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
         except StopIteration:
             return True
 
-    def issubset(self, other: Iterable[atomic.IntervalValue]) -> bool:
+    def issubset(self, other: Iterable[atomic.IntervalValue[atomic.TO]]) -> bool:
         """
         Return :data:`True <python:True>` if the set is a subset of the *other*.
 
@@ -654,7 +678,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
         """
         return self._issubset(other)
 
-    def issuperset(self, other: Iterable[atomic.IntervalValue]) -> bool:
+    def issuperset(self, other: Iterable[atomic.IntervalValue[atomic.TO]]) -> bool:
         """
         Return :data:`True <python:True>` if the set is a superset of the *other*.
 
@@ -676,20 +700,20 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
             __ge__: superset test.
         """
-        other = FrozenIntervalSet(other)
+        other = FrozenIntervalSet[atomic.TO](other)
         # pylint: disable=protected-access
         return other._issubset(self)
 
-    def _issubset(self, other: Iterable[atomic.IntervalValue], strict=False):
+    def _issubset(self, other: Iterable[atomic.IntervalValue[atomic.TO]], strict=False):
         iterator = iter(self)
         if not isinstance(other, IntervalSet):
-            other = FrozenIntervalSet(other)
+            other = FrozenIntervalSet[atomic.TO](other)
         cursor = 0
         subset = False
         try:
             while True:
                 # pylint: disable=protected-access
-                interval: atomic.Interval = next(iterator)
+                interval: atomic.Interval[atomic.TO] = next(iterator)
                 cursor = other._bisect_left(interval, lo=cursor)
                 during = other[cursor]
                 if interval._lower < during._lower or interval._upper > during._upper:
@@ -699,7 +723,9 @@ class IntervalSet(Set, metaclass=ABCMeta):
         except StopIteration:
             return not strict or subset
 
-    def intersection(self, *args: Iterable[atomic.IntervalValue]) -> "IntervalSet":
+    def intersection(
+        self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
+    ) -> "IntervalSet[atomic.TO]":
         """
         Return the intersection of a list of sorted interval sets.
 
@@ -729,33 +755,33 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
             >>> from part import FrozenIntervalSet
             >>> print(
-            ...     FrozenIntervalSet([(1, 3), (4, 10)]).intersection(
-            ...         FrozenIntervalSet([(2, 5), (6, 8)]),
-            ...         FrozenIntervalSet([(2, 3), (4, 11)])
+            ...     FrozenIntervalSet[int]([(1, 3), (4, 10)]).intersection(
+            ...         FrozenIntervalSet[int]([(2, 5), (6, 8)]),
+            ...         FrozenIntervalSet[int]([(2, 3), (4, 11)])
             ...     )
             ... )
             [2;3) | [4;5) | [6;8)
-            >>> print(FrozenIntervalSet().intersection())
+            >>> print(FrozenIntervalSet[int]().intersection())
             <BLANKLINE>
-            >>> print(FrozenIntervalSet([(1, 3), (4, 10)]).intersection())
+            >>> print(FrozenIntervalSet[int]([(1, 3), (4, 10)]).intersection())
             [1;3) | [4;10)
-            >>> print(FrozenIntervalSet([(1, 3)]).intersection(
-            ...     FrozenIntervalSet([(4, 10)]))
+            >>> print(FrozenIntervalSet[int]([(1, 3)]).intersection(
+            ...     FrozenIntervalSet[int]([(4, 10)]))
             ... )
             <BLANKLINE>
-            >>> print(FrozenIntervalSet([(1, 3, True, True)]).intersection(
-            ...     FrozenIntervalSet([(3, 10)]))
+            >>> print(FrozenIntervalSet[int]([(1, 3, True, True)]).intersection(
+            ...     FrozenIntervalSet[int]([(3, 10)]))
             ... )
             [3;3]
-            >>> print(FrozenIntervalSet([(1, 3)]).intersection(
-            ...     FrozenIntervalSet([(1, 3)]))
+            >>> print(FrozenIntervalSet[int]([(1, 3)]).intersection(
+            ...     FrozenIntervalSet[int]([(1, 3)]))
             ... )
             [1;3)
             >>> print(
-            ...     FrozenIntervalSet(
+            ...     FrozenIntervalSet[int](
             ...         [(0, 2), (5, 10), (13, 23), (24, 25)]
             ...     ).intersection(
-            ...         FrozenIntervalSet(
+            ...         FrozenIntervalSet[int](
             ...             [
             ...                 (1, 5, True, True),
             ...                 (8, 12),
@@ -763,7 +789,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             ...                 (20, 24, True, True)
             ...             ]
             ...         ),
-            ...         FrozenIntervalSet(
+            ...         FrozenIntervalSet[int](
             ...             [(1, 9), (16, 30)]
             ...         )
             ...     )
@@ -776,7 +802,9 @@ class IntervalSet(Set, metaclass=ABCMeta):
             result._append(item)
         return result
 
-    def union(self, *args: Iterable[atomic.IntervalValue]) -> "IntervalSet":
+    def union(
+        self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
+    ) -> "IntervalSet[atomic.TO]":
         """
         Return the union of a list of sorted interval sets.
 
@@ -806,31 +834,31 @@ class IntervalSet(Set, metaclass=ABCMeta):
 
             >>> from part import FrozenIntervalSet
             >>> print(
-            ...     FrozenIntervalSet([(1, 3), (4, 10)]).union(
-            ...         FrozenIntervalSet([(2, 5), (6, 8)]),
-            ...         FrozenIntervalSet([(2, 3), (4, 11)])
+            ...     FrozenIntervalSet[int]([(1, 3), (4, 10)]).union(
+            ...         FrozenIntervalSet[int]([(2, 5), (6, 8)]),
+            ...         FrozenIntervalSet[int]([(2, 3), (4, 11)])
             ...     )
             ... )
             [1;11)
-            >>> print(FrozenIntervalSet().union())
+            >>> print(FrozenIntervalSet[int]().union())
             <BLANKLINE>
-            >>> print(FrozenIntervalSet([(1, 3), (4, 10)]).union())
+            >>> print(FrozenIntervalSet[int]([(1, 3), (4, 10)]).union())
             [1;3) | [4;10)
-            >>> print(FrozenIntervalSet([(1, 3)]).union(
-            ...     FrozenIntervalSet([(4, 10)]))
+            >>> print(FrozenIntervalSet[int]([(1, 3)]).union(
+            ...     FrozenIntervalSet[int]([(4, 10)]))
             ... )
             [1;3) | [4;10)
-            >>> print(FrozenIntervalSet([(1, 3, True, True)]).union(
-            ...     FrozenIntervalSet([(3, 10)]))
+            >>> print(FrozenIntervalSet[int]([(1, 3, True, True)]).union(
+            ...     FrozenIntervalSet[int]([(3, 10)]))
             ... )
             [1;10)
-            >>> print(FrozenIntervalSet([(1, 3)]).union(
-            ...     FrozenIntervalSet([(1, 3)]))
+            >>> print(FrozenIntervalSet[int]([(1, 3)]).union(
+            ...     FrozenIntervalSet[int]([(1, 3)]))
             ... )
             [1;3)
             >>> print(
-            ...     FrozenIntervalSet([(0, 2), (5, 10), (13, 23), (24, 25)]).union(
-            ...         FrozenIntervalSet(
+            ...     FrozenIntervalSet[int]([(0, 2), (5, 10), (13, 23), (24, 25)]).union(
+            ...         FrozenIntervalSet[int](
             ...             [
             ...                 (1, 5, True, True),
             ...                 (8, 12),
@@ -838,7 +866,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             ...                 (20, 24, True, True)
             ...             ]
             ...         ),
-            ...         FrozenIntervalSet(
+            ...         FrozenIntervalSet[int](
             ...             [(1, 9), (16, 30)]
             ...         )
             ...     )
@@ -852,7 +880,9 @@ class IntervalSet(Set, metaclass=ABCMeta):
             result._append(item)
         return result
 
-    def difference(self, *args: Iterable[atomic.IntervalValue]) -> "IntervalSet":
+    def difference(
+        self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
+    ) -> "IntervalSet[atomic.TO]":
         """
         Return the difference with of a list of sorted interval sets.
 
@@ -880,8 +910,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
         return self.intersection(~self.__class__().union(*args))
 
     def symmetric_difference(
-        self, other: Iterable[atomic.IntervalValue]
-    ) -> "IntervalSet":
+        self, other: Iterable[atomic.IntervalValue[atomic.TO]]
+    ) -> "IntervalSet[atomic.TO]":
         """
         Return the symmetric difference with of another sorted interval set.
 
@@ -907,7 +937,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             __xor__: A symmetric difference is equivalent to several :meth: `__xor__`.
         """
         if not isinstance(other, IntervalSet):
-            other = FrozenIntervalSet(other)
+            other = FrozenIntervalSet[atomic.TO](other)
         return (self | other) - (self & other)
 
     def copy(self) -> "IntervalSet":
@@ -925,8 +955,8 @@ class IntervalSet(Set, metaclass=ABCMeta):
         return result
 
     def select(
-        self, value: atomic.IntervalValue, strict: bool = True
-    ) -> Iterator[atomic.Interval]:
+        self, value: atomic.IntervalValue[atomic.TO], strict: bool = True
+    ) -> Iterator[atomic.Interval[atomic.TO]]:
         """
         Select all intervals that have a non-empty intersection with *value*.
 
@@ -934,9 +964,10 @@ class IntervalSet(Set, metaclass=ABCMeta):
         ---------
             value: \
                     :class:`Atomic`, \
-                    :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
+                    :class:`TO <TotallyOrdered>`\
+                    :class:`Tuple[TO, TO] <python:tuple>`, \
+                    :class:`Tuple[TO, TO, Optional[bool]] <python:tuple>`, \
+                    :class:`Tuple[TO, TO, Optional[bool], Optional[bool]] \
                         <python:tuple>`
                 The value to search
             strict: bool
@@ -951,7 +982,9 @@ class IntervalSet(Set, metaclass=ABCMeta):
         --------
 
             >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([2, (6, 7), (8, 10, None), (11, 13, True, True)])
+            >>> a = FrozenIntervalSet[int](
+            ...     [2, (6, 7), (8, 10, None), (11, 13, True, True)]
+            ... )
             >>> print(list(str(interval) for interval in a.select((5, 9))))
             ['[6;7)']
             >>> print(list(str(interval) for interval in a.select((2, 9))))
@@ -961,7 +994,7 @@ class IntervalSet(Set, metaclass=ABCMeta):
             ... )
             ['[2;2]', '[6;7)', '(8;10)']
         """
-        if value is atomic.EMPTY:
+        if not value:
             return
         interval = atomic.Atomic.from_value(value)
         index = self._bisect_left(interval)
@@ -981,7 +1014,11 @@ class IntervalSet(Set, metaclass=ABCMeta):
             index += 1
 
 
-class FrozenIntervalSet(IntervalSet):
+class FrozenIntervalSet(
+    Generic[atomic.TO],
+    # pylint: disable=unsubscriptable-object
+    IntervalSet[atomic.TO],
+):
     """
     Frozen Interval Set class.
 
@@ -993,7 +1030,7 @@ class FrozenIntervalSet(IntervalSet):
 
     # pylint: disable=too-many-branches
     def __init__(
-        self, iterable: Optional[Iterable[atomic.IntervalValue]] = None
+        self, iterable: Optional[Iterable[atomic.IntervalValue[atomic.TO]]] = None
     ) -> None:
         """
         Initialize a :class:`FrozenIntervalSet` instance.
@@ -1004,9 +1041,10 @@ class FrozenIntervalSet(IntervalSet):
                 An optional iterable of:
 
                 * :class:`Atomic`
-                * :class:`Tuple[Any, Any] <python:tuple>`
-                * :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`
-                * :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
+                * :class:`TO <TotallyOrdered>`
+                * :class:`Tuple[TO, TO] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool]] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool], Optional[bool]] \
                         <python:tuple>`
 
         Examples
@@ -1017,7 +1055,7 @@ class FrozenIntervalSet(IntervalSet):
             >>> print(a)
             [2;2] | [6;7) | (8;9) | [10;11]
         """
-        self._intervals: List[atomic.Interval] = []
+        self._intervals: List[atomic.Interval[atomic.TO]] = []
         self._hash: Optional[int] = None
         super().__init__(iterable)
 
@@ -1037,12 +1075,7 @@ class FrozenIntervalSet(IntervalSet):
 
         Arguments
         ---------
-            value: \
-                    :class:`Atomic`, \
-                    :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
-                        <python:tuple>`
+            value: object
                 The value to search.
 
         Returns
@@ -1111,6 +1144,7 @@ class FrozenIntervalSet(IntervalSet):
             return result
         return super().__getitem__(item)
 
+    # pylint: disable=invalid-name
     def _bisect_left(self, search, lo=0, hi=None):
         if hi is None:
             hi = len(self)
@@ -1121,7 +1155,12 @@ class FrozenIntervalSet(IntervalSet):
 
 
 # pylint: disable=too-many-ancestors
-class MutableIntervalSet(IntervalSet, MutableSet):
+class MutableIntervalSet(
+    Generic[atomic.TO],
+    # pylint: disable=unsubscriptable-object
+    IntervalSet[atomic.TO],
+    MutableSet[atomic.Interval[atomic.TO]],
+):
     """
     Mutable Interval Set class.
 
@@ -1133,7 +1172,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
 
     # pylint: disable=too-many-branches
     def __init__(
-        self, iterable: Optional[Iterable[atomic.IntervalValue]] = None
+        self, iterable: Optional[Iterable[atomic.IntervalValue[atomic.TO]]] = None
     ) -> None:
         """
         Initialize a :class:`MutableIntervalSet` instance.
@@ -1141,13 +1180,13 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         Arguments
         ---------
             iterable: :class:`Iterable <python:typing.Iterable>`
-                An optional iterable of:
+                An optional iterable of either
 
                 * :class:`Atomic`
-                * :class:`Tuple[Any, Any] <python:tuple>`
-                * :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`
-                * :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
-                        <python:tuple>`
+                * :class:`TO <TotallyOrdered>`
+                * :class:`Tuple[TO, TO] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool]] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool], Optional[bool]] <python:tuple>`
 
         Examples
         --------
@@ -1166,12 +1205,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
 
         Arguments
         ---------
-            value: \
-                    :class:`Atomic`, \
-                    :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
-                        <python:tuple>`
+            item: object
                 The value to search.
 
         Returns
@@ -1193,7 +1227,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         """
         return item in self._intervals
 
-    def __ior__(self, other) -> "MutableIntervalSet":
+    def __ior__(self, other) -> "MutableIntervalSet[atomic.TO]":  # type: ignore
         """
         Update self with the union *other*.
 
@@ -1226,7 +1260,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         self.update(other)
         return self
 
-    def __iand__(self, other) -> "MutableIntervalSet":
+    def __iand__(self, other) -> "MutableIntervalSet[atomic.TO]":
         """
         Update self with the intersection with *other*.
 
@@ -1259,7 +1293,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         self.intersection_update(other)
         return self
 
-    def __isub__(self, other) -> "MutableIntervalSet":
+    def __isub__(self, other) -> "MutableIntervalSet[atomic.TO]":
         """
         Update self with the difference with *other*.
 
@@ -1292,7 +1326,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         self.difference_update(other)
         return self
 
-    def __ixor__(self, other) -> "MutableIntervalSet":
+    def __ixor__(self, other) -> "MutableIntervalSet[atomic.TO]":  # type: ignore
         """
         Update self with the symmetric difference with *other*.
 
@@ -1324,6 +1358,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         self.symmetric_difference_update(other)
         return self
 
+    # pylint: disable=invalid-name
     def _bisect_left(self, search, lo=0, hi=None) -> int:
         if hi is None:
             hi = len(self)
@@ -1337,7 +1372,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
     def _append(self, item) -> None:
         self._intervals.add(item)
 
-    def update(self, *args: Iterable[atomic.IntervalValue]) -> None:
+    def update(self, *args: Iterable[atomic.IntervalValue[atomic.TO]]) -> None:
         """
         Update the set, keeping only elements found in it and all others.
 
@@ -1356,7 +1391,9 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         # pylint: disable=protected-access
         self._intervals = result._intervals  # type: ignore
 
-    def intersection_update(self, *args: Iterable[atomic.IntervalValue]) -> None:
+    def intersection_update(
+        self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
+    ) -> None:
         """
         Update the set, keeping only elements found in it and all others.
 
@@ -1375,7 +1412,9 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         # pylint: disable=protected-access
         self._intervals = result._intervals  # type: ignore
 
-    def difference_update(self, *args: Iterable[atomic.IntervalValue]) -> None:
+    def difference_update(
+        self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
+    ) -> None:
         """
         Update the set, removing elements found in others.
 
@@ -1395,7 +1434,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         self._intervals = result._intervals  # type: ignore
 
     def symmetric_difference_update(
-        self, other: Iterable[atomic.IntervalValue]
+        self, other: Iterable[atomic.IntervalValue[atomic.TO]]
     ) -> None:
         """
         Update the set, keeping only elements found in either set, but not in both.
@@ -1415,19 +1454,20 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         # pylint: disable=protected-access
         self._intervals = result._intervals  # type: ignore
 
-    def add(self, value: atomic.IntervalValue) -> None:
+    def add(self, value: atomic.IntervalValue[atomic.TO]) -> None:
         """
         Add element *value* to the set.
 
         Arguments
         ---------
-            value: \
-                    :class:`Atomic`, \
-                    :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
-                        <python:tuple>`
-                The value to add.
+            value: :class:`IntervalValue`
+                The value to add:
+
+                * :class:`Atomic`
+                * :class:`TO <TotallyOrdered>`
+                * :class:`Tuple[TO, TO] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool]] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool], Optional[bool]] <python:tuple>`
 
         Examples
         --------
@@ -1440,25 +1480,26 @@ class MutableIntervalSet(IntervalSet, MutableSet):
             >>> print(a)
             [2;7) | (8;10) | [11;13]
         """
-        if value is atomic.EMPTY:
+        if not value:
             return
 
         interval = atomic.Atomic.from_value(value)
         self._intervals = SortedSet(self._union(FrozenIntervalSet([interval])))
 
-    def remove(self, value: atomic.IntervalValue) -> None:
+    def remove(self, value: atomic.IntervalValue[atomic.TO]) -> None:
         """
         Remove element *value* from the set.
 
         Arguments
         ---------
-            value: \
-                    :class:`Atomic`, \
-                    :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
-                        <python:tuple>`
-                The value to remove
+            value: :class:`IntervalValue`
+                The value to remove:
+
+                * :class:`Atomic`
+                * :class:`TO <TotallyOrdered>`
+                * :class:`Tuple[TO, TO] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool]] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool], Optional[bool]] <python:tuple>`
 
         Raises
         ------
@@ -1478,7 +1519,7 @@ class MutableIntervalSet(IntervalSet, MutableSet):
             ...     print(e)
             '(2, 8)'
         """
-        if value is atomic.EMPTY:
+        if not value:
             return
 
         interval = atomic.Atomic.from_value(value)
@@ -1488,19 +1529,20 @@ class MutableIntervalSet(IntervalSet, MutableSet):
         else:
             raise KeyError(f"{value}")
 
-    def discard(self, value: atomic.IntervalValue) -> None:
+    def discard(self, value: atomic.IntervalValue[atomic.TO]) -> None:
         """
         Discard element *value* from the set.
 
         Arguments
         ---------
-            value: \
-                    :class:`Atomic`, \
-                    :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool]] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
-                        <python:tuple>`
-                The value to discard.
+            value: :class:`IntervalValue`
+                The value to discard:
+
+                * :class:`Atomic`
+                * :class:`TO <TotallyOrdered>`
+                * :class:`Tuple[TO, TO] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool]] <python:tuple>`
+                * :class:`Tuple[TO, TO, Optional[bool], Optional[bool]] <python:tuple>`
 
         Examples
         --------
@@ -1513,13 +1555,13 @@ class MutableIntervalSet(IntervalSet, MutableSet):
             >>> print(a)
             (8;10) | [11;13]
         """
-        if value is atomic.EMPTY:
+        if not value:
             return
 
         interval = atomic.Atomic.from_value(value)
         self._intervals = SortedSet(self._intersection(~interval))
 
-    def pop(self) -> atomic.Interval:
+    def pop(self) -> atomic.Interval[atomic.TO]:
         """
         Get the first interval.
 

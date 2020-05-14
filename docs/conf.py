@@ -1,11 +1,12 @@
-author = "Christophe Demko"
+import os
+import sys
 from datetime import date
+
+author = "Christophe Demko"
+project = "py-part"
 
 year = date.today().year
 copyright = "2020-%s, Christophe Demko" % year
-
-import os
-import sys
 
 sys.path.insert(0, os.path.abspath(".."))
 
@@ -132,8 +133,8 @@ html_sidebars = {
     ]
 }
 
-html_favicon = "part.ico"
-html_logo = "part.svg"
+html_favicon = "py-part.ico"
+html_logo = "py-part.svg"
 
 import nbsphinx
 

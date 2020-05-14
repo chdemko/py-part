@@ -23,8 +23,8 @@ with open("README.md", "r") as stream:
     long_description = stream.read()
 
 setuptools.setup(
-    name="part",
-    version="0.0.1",
+    name="py-part",
+    version="0.0.2",
     author="Christophe Demko",
     author_email="chdemko@gmail.com",
     description="An interval library package",

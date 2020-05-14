@@ -44,7 +44,7 @@ Running the tests
 .. code-block:: console
     :class: admonition
 
-    $ pip install .[test]
-    $ tox
+    $ pip install tox
+    $ tox -e py
 
 
