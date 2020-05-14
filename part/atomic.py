@@ -4,21 +4,66 @@
 
 from abc import ABC, abstractmethod
 from collections import namedtuple
-from typing import Union, Tuple, Any, Optional
+from typing import Union, Tuple, Any, Optional, Generic, TypeVar
 
 import part
 from part.utils import Singleton
-from part.values import INFINITY  # type: ignore
+from part.values import INFINITY, NegativeInfinity, PositiveInfinity  # type: ignore
 
+
+class TotallyOrdered(ABC):
+    """TotallyOrdered class."""
+
+    @abstractmethod
+    def __lt__(self, other: Any) -> bool:
+        """Return self<other."""
+        return NotImplemented
+
+    @abstractmethod
+    def __gt__(self, other: Any) -> bool:
+        """Return self>other."""
+        return NotImplemented
+
+    @abstractmethod
+    def __le__(self, other: Any) -> bool:
+        """Return self<=other."""
+        return NotImplemented
+
+    @abstractmethod
+    def __ge__(self, other: Any) -> bool:
+        """Return self>=other."""
+        return NotImplemented
+
+    @abstractmethod
+    def __ne__(self, other: Any) -> bool:
+        """Return self!=other."""
+        return NotImplemented
+
+    @abstractmethod
+    def __eq__(self, other: Any) -> bool:
+        """Return self==other."""
+        return NotImplemented
+
+
+TO = TypeVar("TO", bound=TotallyOrdered)
 
 IntervalTuple = Union[
-    Tuple[Any, Any],
-    Tuple[Any, Any, Optional[bool]],
-    Tuple[Any, Any, Optional[bool], Optional[bool]],
+    Tuple[Union[TO, NegativeInfinity, None], Union[TO, PositiveInfinity, None]],
+    Tuple[
+        Union[TO, NegativeInfinity, None],
+        Union[TO, PositiveInfinity, None],
+        Optional[bool],
+    ],
+    Tuple[
+        Union[TO, NegativeInfinity, None],
+        Union[TO, PositiveInfinity, None],
+        Optional[bool],
+        Optional[bool],
+    ],
 ]
 
 
-class Atomic(ABC):
+class Atomic(Generic[TO], ABC):
     """
     Atomic class.
 
@@ -67,7 +112,7 @@ class Atomic(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def __or__(self, other) -> "part.FrozenIntervalSet":
+    def __or__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Return the union of self with *other*.
 
@@ -84,7 +129,7 @@ class Atomic(ABC):
         return NotImplemented
 
     @abstractmethod
-    def __and__(self, other) -> "part.FrozenIntervalSet":
+    def __and__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Return the intersection of self with *other*.
 
@@ -101,7 +146,7 @@ class Atomic(ABC):
         return NotImplemented
 
     @abstractmethod
-    def __sub__(self, other) -> "part.FrozenIntervalSet":
+    def __sub__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Return the difference of self with *other*.
 
@@ -118,7 +163,7 @@ class Atomic(ABC):
         return NotImplemented
 
     @abstractmethod
-    def __xor__(self, other) -> "part.FrozenIntervalSet":
+    def __xor__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Return the symmetric difference of self with *other*.
 
@@ -135,7 +180,7 @@ class Atomic(ABC):
         return NotImplemented
 
     @abstractmethod
-    def __invert__(self) -> "part.FrozenIntervalSet":
+    def __invert__(self) -> "part.FrozenIntervalSet[part.TO]":
         """
         Return the complement of self.
 
@@ -153,25 +198,13 @@ class Atomic(ABC):
         return False
 
     @staticmethod
-    def _compare(other) -> bool:
-        if Atomic.__compare(other) is NotImplemented:
-            raise TypeError(
-                f"{other.__class__.__name__} argument must be an instance of Atomic"
-            )
-        return False
-
-    @staticmethod
-    def from_tuple(item: IntervalTuple):
+    def from_tuple(item: IntervalTuple[TO]):
         """
         Create an interval from a tuple.
 
         Arguments
         ---------
-            item: \
-                    :class:`Tuple[Any, Any] <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool]]  <python:tuple>`, \
-                    :class:`Tuple[Any, Any, Optional[bool], Optional[bool]] \
-                        <python:tuple>`
+            item: :class:`IntervalTuple`
                 The tuple to transform:
 
                 * a pair ``<a,b>`` designates an interval closed on the left and open on
@@ -192,27 +225,31 @@ class Atomic(ABC):
         --------
 
             >>> from part import Atomic
-            >>> print(Atomic.from_tuple((10, 20)))
+            >>> print(Atomic[int].from_tuple((10, 20)))
             [10;20)
-            >>> print(Atomic.from_tuple((10, 20, True, None)))
+            >>> print(Atomic[int].from_tuple((10, 20, True, None)))
             [10;20)
-            >>> print(Atomic.from_tuple((10, 20, None, None)))
+            >>> print(Atomic[int].from_tuple((10, 20, None, None)))
             (10;20)
-            >>> print(Atomic.from_tuple((10, 20, None, True)))
+            >>> print(Atomic[int].from_tuple((10, 20, None, True)))
             (10;20]
         """
         if len(item) == 1:
-            return Interval(lower_value=item[0], upper_value=item[0], upper_closed=True)
+            return Interval[TO](
+                lower_value=item[0],  # type: ignore
+                upper_value=item[0],  # type: ignore
+                upper_closed=True,
+            )
         if len(item) == 2:
-            return Interval(lower_value=item[0], upper_value=item[1])
+            return Interval[TO](lower_value=item[0], upper_value=item[1])
         if len(item) == 3:
-            return Interval(
+            return Interval[TO](
                 lower_value=item[0],
                 upper_value=item[1],
                 lower_closed=bool(item[2]) or None,  # type: ignore
             )
         if len(item) == 4:
-            return Interval(
+            return Interval[TO](
                 lower_value=item[0],
                 upper_value=item[1],
                 lower_closed=bool(item[2]) or None,  # type: ignore
@@ -239,11 +276,11 @@ class Atomic(ABC):
         --------
 
             >>> from part import Atomic
-            >>> print(Atomic.from_value(10))
+            >>> print(Atomic[int].from_value(10))
             [10;10]
         """
-        if value is EMPTY:
-            return EMPTY
+        if isinstance(value, Empty):
+            return value
         if isinstance(value, Interval):
             return value
         if isinstance(value, tuple):
@@ -251,16 +288,20 @@ class Atomic(ABC):
         return Atomic.from_tuple((value, value, True, True))
 
     @abstractmethod
-    def meets(self, other: "Atomic", strict: bool = True) -> bool:
+    def meets(
+        self, other: "Atomic[TO]", strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset meets the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the meet strict?
+                is the *meets* strict?
+            reverse: bool
+                is the *meets* reversed?
 
         Raises
         ------
@@ -272,16 +313,20 @@ class Atomic(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def overlaps(self, other: "Atomic", strict: bool = True) -> bool:
+    def overlaps(
+        self, other: "Atomic[TO]", strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset overlaps the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the overlap strict?
+                is the *overlap* strict?
+            reverse: bool
+                is the *overlaps* reversed?
 
         Raises
         ------
@@ -293,16 +338,20 @@ class Atomic(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def starts(self, other: "Atomic", strict: bool = True) -> bool:
+    def starts(
+        self, other: "Atomic[TO]", strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset starts the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the start strict?
+                is the *starts* strict?
+            reverse: bool
+                is the *starts* reversed?
 
         Raises
         ------
@@ -314,16 +363,20 @@ class Atomic(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def during(self, other: "Atomic", strict: bool = True) -> bool:
+    def during(
+        self, other: "Atomic[TO]", strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset is during the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the during strict?
+                is the *during* strict?
+            reverse: bool
+                is the *during* reversed?
 
         Raises
         ------
@@ -335,16 +388,20 @@ class Atomic(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def finishes(self, other: "Atomic", strict: bool = True) -> bool:
+    def finishes(
+        self, other: "Atomic[TO]", strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset finishes the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the finish strict?
+                is the *finishes* strict?
+            reverse: bool
+                is the *finishes* reversed?
 
         Raises
         ------
@@ -356,13 +413,12 @@ class Atomic(ABC):
         raise NotImplementedError
 
 
-class Empty(Singleton, Atomic):
+class Empty(Generic[TO], Singleton, Atomic[TO]):
     """
     Empty set class.
 
     The :class:`Empty` class (which inherits from the :class:`Atomic` class) represent
-    the empty set. There is only one instance of this class called
-    :const:`EMPTY <Empty>`.
+    the empty set. There is only one instance of this class.
     """
 
     __slots__ = ()
@@ -386,59 +442,88 @@ class Empty(Singleton, Atomic):
         """
         return False
 
-    def __or__(self, other) -> "part.FrozenIntervalSet":
+    def __or__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """Return self|other."""
         if not isinstance(other, part.Atomic):
             return super().__or__(other)
-        return part.FrozenIntervalSet([other])  # type: ignore
+        return part.FrozenIntervalSet[part.TO]([other])  # type: ignore
 
-    def __and__(self, other) -> "part.FrozenIntervalSet":
+    def __and__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """Return self^other."""
         if not isinstance(other, part.Atomic):
             return super().__and__(other)
-        return part.FrozenIntervalSet()
+        return part.FrozenIntervalSet[part.TO]()
 
-    def __sub__(self, other) -> "part.FrozenIntervalSet":
+    def __sub__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """Return self-other."""
         if not isinstance(other, part.Atomic):
             return super().__sub__(other)
-        return part.FrozenIntervalSet()
+        return part.FrozenIntervalSet[part.TO]()
 
-    def __xor__(self, other) -> "part.FrozenIntervalSet":
+    def __xor__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """Return self^other."""
         if not isinstance(other, part.Atomic):
             return super().__xor__(other)
-        return part.FrozenIntervalSet([other])  # type: ignore
+        return part.FrozenIntervalSet[part.TO]([other])  # type: ignore
 
-    def __invert__(self) -> "part.FrozenIntervalSet":
+    def __invert__(self) -> "part.FrozenIntervalSet[part.TO]":
         """Return ~self."""
-        return part.FrozenIntervalSet([FULL])  # type: ignore
+        return part.FrozenIntervalSet[part.TO]([Interval[TO]()])  # type: ignore
 
-    def meets(self, other: Atomic, strict: bool = True) -> bool:
+    # pylint: disable=unused-argument,no-self-use
+    def meets(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """See :meth:`Atomic.meets`."""
-        return Atomic._compare(other)
+        if not isinstance(other, part.Atomic):
+            raise TypeError(
+                f"{other.__class__.__name__} argument must be an instance of Atomic"
+            )
+        return False
 
-    def overlaps(self, other: Atomic, strict: bool = True) -> bool:
+    # pylint: disable=unused-argument,no-self-use
+    def overlaps(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """See :meth:`Atomic.overlaps`."""
-        return Atomic._compare(other)
+        if not isinstance(other, part.Atomic):
+            raise TypeError(
+                f"{other.__class__.__name__} argument must be an instance of Atomic"
+            )
+        return False
 
-    def starts(self, other: Atomic, strict: bool = True) -> bool:
+    # pylint: disable=unused-argument,no-self-use
+    def starts(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """See :meth:`Atomic.starts`."""
-        return Atomic._compare(other)
+        if not isinstance(other, part.Atomic):
+            raise TypeError(
+                f"{other.__class__.__name__} argument must be an instance of Atomic"
+            )
+        return False
 
-    def during(self, other: Atomic, strict: bool = True) -> bool:
+    # pylint: disable=unused-argument,no-self-use
+    def during(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """See :meth:`Atomic.during`."""
-        return Atomic._compare(other)
+        if not isinstance(other, part.Atomic):
+            raise TypeError(
+                f"{other.__class__.__name__} argument must be an instance of Atomic"
+            )
+        return False
 
-    def finishes(self, other: Atomic, strict: bool = True) -> bool:
+    # pylint: disable=unused-argument,no-self-use
+    def finishes(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """See :meth:`Atomic.finishes`."""
-        return Atomic._compare(other)
-
-
-EMPTY = Empty()
-"""
-:ivar:`EMPTY` represents the empty set.
-"""
+        if not isinstance(other, part.Atomic):
+            raise TypeError(
+                f"{other.__class__.__name__} argument must be an instance of Atomic"
+            )
+        return False
 
 
 class Mark(namedtuple("Mark", ["value", "type"])):
@@ -483,7 +568,7 @@ class Mark(namedtuple("Mark", ["value", "type"])):
         )
 
 
-class Interval(Atomic):
+class Interval(Generic[TO], Atomic[TO]):
     """
     Interval class.
 
@@ -501,20 +586,20 @@ class Interval(Atomic):
 
     def __new__(  # type: ignore
         cls,
-        lower_value: Optional[Any] = None,
-        upper_value: Optional[Any] = None,
+        lower_value: Optional[Union[TO, NegativeInfinity]] = None,
+        upper_value: Optional[Union[TO, PositiveInfinity]] = None,
         lower_closed: Optional[bool] = True,
         upper_closed: Optional[bool] = None,
-    ) -> Atomic:
+    ) -> Atomic[TO]:
         """
         Create an :class:`Atomic` instance.
 
         Keyword Arguments
         -----------------
-            lower_value: object, optional
-                Any python object.
-            upper_value: object, optional
-                Any python object.
+            lower_value: :class:`TO <TotallyOrdered>`, optional
+                Any python comparable object.
+            upper_value: :class:`TO <TotallyOrdered>`, optional
+                Any python comparable object.
             lower_closed: bool, optional
                 A boolean value.
             upper_closed: bool, optional
@@ -524,7 +609,7 @@ class Interval(Atomic):
         -------
             :class:`Interval`
                 if the arguments define a non-empty interval.
-            :const:`EMPTY  <Empty>`
+            :const:`Empty`
                 otherwise.
 
         Raises
@@ -540,10 +625,10 @@ class Interval(Atomic):
         Examples
         --------
 
-            >>> from part import Interval, EMPTY
-            >>> a = Interval(lower_value=10, upper_value=0)
-            >>> a is EMPTY
-            True
+            >>> from part import Interval
+            >>> a = Interval[int](lower_value=10, upper_value=0)
+            >>> bool(a)
+            False
         """
         if (
             lower_value is None
@@ -552,27 +637,45 @@ class Interval(Atomic):
             or lower_value >= upper_value
         ):
             if lower_value is INFINITY:
-                return EMPTY  # type: ignore
+                return Empty[TO]()  # type: ignore
             if upper_value is -INFINITY:
-                return EMPTY  # type: ignore
+                return Empty[TO]()  # type: ignore
             if lower_value is None:
-                return super().__new__(cls)
+                return super().__new__(  # type: ignore
+                    cls,
+                    lower_value=lower_value,
+                    upper_value=upper_value,
+                    lower_closed=lower_closed,
+                    upper_closed=upper_closed,
+                )
             if upper_value is None:
-                return super().__new__(cls)
+                return super().__new__(  # type: ignore
+                    cls,
+                    lower_value=lower_value,
+                    upper_value=upper_value,
+                    lower_closed=lower_closed,
+                    upper_closed=upper_closed,
+                )
 
             if (
                 lower_value > upper_value
                 or lower_value == upper_value
                 and not (lower_closed and upper_closed)
             ):  # type: ignore
-                return EMPTY  # type: ignore
-            return super().__new__(cls)
+                return Empty[TO]()  # type: ignore
+            return super().__new__(  # type: ignore
+                cls,
+                lower_value=lower_value,
+                upper_value=upper_value,
+                lower_closed=lower_closed,
+                upper_closed=upper_closed,
+            )
         raise ValueError(f"{lower_value} must be comparable with {upper_value}")
 
     def __init__(
         self,
-        lower_value: Optional[Any] = None,
-        upper_value: Optional[Any] = None,
+        lower_value: Optional[Union[TO, NegativeInfinity]] = None,
+        upper_value: Optional[Union[TO, PositiveInfinity]] = None,
         lower_closed: Optional[bool] = True,
         upper_closed: Optional[bool] = None,
     ) -> None:
@@ -583,9 +686,9 @@ class Interval(Atomic):
 
         Keyword Arguments
         -----------------
-            lower_value: object, optional
+            lower_value: :class:`TO <TotallyOrdered>`, optional
                 Any python object.
-            upper_value: object, optional
+            upper_value: :class:`TO <TotallyOrdered>`, optional
                 Any python object.
             lower_closed: bool, optional
                 A boolean value.
@@ -600,17 +703,18 @@ class Interval(Atomic):
         Examples
         --------
             >>> from part import Interval
-            >>> print(Interval(lower_value=10, upper_value=20))
+            >>> print(Interval[int](lower_value=10, upper_value=20))
             [10;20)
-            >>> print(Interval(lower_value="abc", upper_value="def", upper_closed=True))
+            >>> print(Interval[str](lower_value="abc", upper_value="def",
+            ... upper_closed=True))
             ['abc';'def']
-            >>> print(Interval(lower_closed=None, lower_value=10, upper_value=20))
+            >>> print(Interval[int](lower_closed=None, lower_value=10, upper_value=20))
             (10;20)
-            >>> print(Interval())
+            >>> print(Interval[int]())
             (-inf;+inf)
         """
         if lower_value is None:
-            lower_value = -INFINITY
+            lower_value = -INFINITY  # type: ignore
             lower_closed = False
         if upper_value is None:
             upper_value = INFINITY  # type: ignore
@@ -630,7 +734,7 @@ class Interval(Atomic):
         """Return self==other."""
         if super().__eq__(other) is NotImplemented:
             return NotImplemented
-        if other is EMPTY:
+        if not other:
             return False
         return self._lower == other.lower and self._upper == other.upper
 
@@ -654,13 +758,13 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> a < Atomic.from_tuple((25, 30))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> a < Atomic[int].from_tuple((25, 30))
             True
         """
         if super().__eq__(other) is NotImplemented:
             return NotImplemented
-        if other is EMPTY:
+        if not other:
             return False
         return self._upper < other.lower
 
@@ -684,15 +788,15 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> a > Atomic.from_tuple((25, 30))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> a > Atomic[int].from_tuple((25, 30))
             False
         """
         if super().__eq__(other) is NotImplemented:
             return NotImplemented
-        if other is EMPTY:
+        if not other:
             return False
-        return other is not EMPTY and self._lower > other.upper
+        return self._lower > other.upper
 
     def __hash__(self) -> int:
         """Return hash(self)."""
@@ -709,7 +813,7 @@ class Interval(Atomic):
         """
         return True
 
-    def __or__(self, other) -> "part.FrozenIntervalSet":
+    def __or__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Compute the union of two intervals.
 
@@ -727,17 +831,17 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> b = Atomic.from_tuple((15, 30))
-            >>> c = Atomic.from_tuple((30, 40))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> b = Atomic[int].from_tuple((15, 30))
+            >>> c = Atomic[int].from_tuple((30, 40))
             >>> print(a | b)
             (10;30)
             >>> print(a | c)
             (10;20) | [30;40)
         """
-        return part.FrozenIntervalSet([self, other])  # type: ignore
+        return part.FrozenIntervalSet[TO]([self, other])  # type: ignore
 
-    def __and__(self, other) -> "part.FrozenIntervalSet":
+    def __and__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Compute the intersection of two intervals.
 
@@ -755,26 +859,26 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> b = Atomic.from_tuple((15, 30))
-            >>> c = Atomic.from_tuple((30, 40))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> b = Atomic[int].from_tuple((15, 30))
+            >>> c = Atomic[int].from_tuple((30, 40))
             >>> print(a & b)
             [15;20)
             >>> print(a & c)
             <BLANKLINE>
         """
-        if other is EMPTY:
-            return part.FrozenIntervalSet()
-        if not isinstance(other, Interval):
+        if not isinstance(other, Atomic):
             return super().__and__(other)
+        if not other:
+            return part.FrozenIntervalSet[part.TO]()
         if self > other or self < other:
-            return part.FrozenIntervalSet()
-        result = Interval()
-        result._lower = max(self._lower, other.lower)
-        result._upper = min(self._upper, other.upper)
-        return part.FrozenIntervalSet([result])  # type: ignore
+            return part.FrozenIntervalSet[part.TO]()
+        result = Interval[TO]()
+        result._lower = max(self._lower, other.lower)  # type: ignore
+        result._upper = min(self._upper, other.upper)  # type: ignore
+        return part.FrozenIntervalSet[TO]([result])  # type: ignore
 
-    def __sub__(self, other) -> "part.FrozenIntervalSet":
+    def __sub__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Compute the difference of two intervals.
 
@@ -792,9 +896,9 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> b = Atomic.from_tuple((15, 30))
-            >>> c = Atomic.from_tuple((30, 40))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> b = Atomic[int].from_tuple((15, 30))
+            >>> c = Atomic[int].from_tuple((30, 40))
             >>> print(a - b)
             (10;15)
             >>> print(a - c)
@@ -802,13 +906,13 @@ class Interval(Atomic):
         """
         if not isinstance(other, Atomic):
             return super().__sub__(other)
-        return part.FrozenIntervalSet(  # type: ignore
+        return part.FrozenIntervalSet[part.TO](  # type: ignore
             [self]  # type: ignore
-        ) - part.FrozenIntervalSet(
+        ) - part.FrozenIntervalSet[part.TO](
             [other]  # type: ignore
         )
 
-    def __xor__(self, other) -> "part.FrozenIntervalSet":
+    def __xor__(self, other) -> "part.FrozenIntervalSet[part.TO]":
         """
         Compute the symmetric difference of two intervals.
 
@@ -826,9 +930,9 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> b = Atomic.from_tuple((15, 30))
-            >>> c = Atomic.from_tuple((30, 40))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> b = Atomic[int].from_tuple((15, 30))
+            >>> c = Atomic[int].from_tuple((30, 40))
             >>> print(a ^ b)
             (10;15) | [20;30)
             >>> print(a ^ c)
@@ -836,13 +940,13 @@ class Interval(Atomic):
         """
         if not isinstance(other, part.Atomic):
             return super().__xor__(other)
-        return part.FrozenIntervalSet(  # type: ignore
+        return part.FrozenIntervalSet[part.TO](  # type: ignore
             [self]  # type: ignore
-        ) ^ part.FrozenIntervalSet(
+        ) ^ part.FrozenIntervalSet[part.TO](
             [other]  # type: ignore
         )
 
-    def __invert__(self) -> "part.FrozenIntervalSet":
+    def __invert__(self) -> "part.FrozenIntervalSet[part.TO]":
         """
         Compute the complement of the interval.
 
@@ -855,29 +959,32 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
             >>> print(~a)
             (-inf;10] | [20;+inf)
         """
-        return part.FrozenIntervalSet(
+        return part.FrozenIntervalSet[part.TO](
             [
-                Interval.upper_limit(
+                Interval[TO].upper_limit(
                     value=self.lower_value, closed=not self.lower_closed
                 ),
-                Interval.lower_limit(
+                Interval[TO].lower_limit(
                     value=self.upper_value, closed=not self.upper_closed
                 ),
             ]
         )
 
     @staticmethod
-    def upper_limit(value: Optional[Any] = None, closed: Optional[bool] = None):
+    def upper_limit(
+        value: Optional[Union[TO, PositiveInfinity]] = None,
+        closed: Optional[bool] = None,
+    ):
         """
         Create an interval from an upper limit.
 
         Arguments
         ---------
-            value: object
+            value: :class:`TO <TotallyOrdered>`
                 The upper limit.
 
             closed: bool
@@ -892,21 +999,24 @@ class Interval(Atomic):
         --------
 
             >>> from part import Interval
-            >>> print(Interval.upper_limit(value=10))
+            >>> print(Interval[int].upper_limit(value=10))
             (-inf;10)
-            >>> print(Interval.upper_limit(value=10, closed=True))
+            >>> print(Interval[int].upper_limit(value=10, closed=True))
             (-inf;10]
         """
-        return Atomic.from_tuple((-INFINITY, value, None, closed))
+        return Atomic[TO].from_tuple((-INFINITY, value, None, closed))  # type: ignore
 
     @staticmethod
-    def lower_limit(value: Optional[Any] = None, closed: Optional[bool] = True):
+    def lower_limit(
+        value: Optional[Union[TO, NegativeInfinity]] = None,
+        closed: Optional[bool] = True,
+    ):
         """
         Create an interval from a lower limit.
 
         Arguments
         ---------
-            value: object
+            value: :class:`TO <TotallyOrdered>`
                 The lower limit.
 
             closed: bool
@@ -921,23 +1031,27 @@ class Interval(Atomic):
         --------
 
             >>> from part import Interval
-            >>> print(Interval.lower_limit(value=10))
+            >>> print(Interval[int].lower_limit(value=10))
             [10;+inf)
-            >>> print(Interval.lower_limit(value=10, closed=None))
+            >>> print(Interval[int].lower_limit(value=10, closed=None))
             (10;+inf)
         """
-        return Atomic.from_tuple((value, +INFINITY, closed, None))
+        return Atomic.from_tuple((value, +INFINITY, closed, None))  # type: ignore
 
-    def meets(self, other: Atomic, strict: bool = True) -> bool:
+    def meets(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset meets the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the meet strict?
+                is the *meets* strict?
+            reverse: bool
+                is the *meets* reversed?
 
         Raises
         ------
@@ -951,31 +1065,37 @@ class Interval(Atomic):
 
             >>> from part import Atomic
             >>> a = Atomic.from_tuple((10, 20, None))
-            >>> a.meets(Atomic.from_tuple((20, 30)))
+            >>> a.meets(Atomic[int].from_tuple((20, 30)))
             False
-            >>> a.meets(Atomic.from_tuple((20, 30)), strict=False)
+            >>> a.meets(Atomic[int].from_tuple((20, 30)), strict=False)
             True
         """
-        if other is EMPTY:
-            return False
-        if not isinstance(other, Interval):
+        if not isinstance(other, part.Atomic):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if reverse:
+            return other.meets(self, strict=strict)
+        if not other:
+            return False
         if strict:
             return self._upper == other.lower
         return self._upper.near(other.lower)
 
-    def overlaps(self, other: Atomic, strict: bool = True) -> bool:
+    def overlaps(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset overlaps the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the overlap strict?
+                is the *overlaps* strict?
+            reverse: bool
+                is the *overlaps* reversed?
 
         Raises
         ------
@@ -988,30 +1108,36 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> a.overlaps(Atomic.from_tuple((15, 30)))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> a.overlaps(Atomic[int].from_tuple((15, 30)))
             True
         """
-        if other is EMPTY:
-            return False
-        if not isinstance(other, Interval):
+        if not isinstance(other, part.Atomic):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if reverse:
+            return other.overlaps(self, strict=strict)
+        if not other:
+            return False
         if strict:
             return self._lower < other.lower < self._upper < other.upper
         return self._lower <= other.lower <= self._upper <= other.upper
 
-    def starts(self, other: Atomic, strict: bool = True) -> bool:
+    def starts(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset starts the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the start strict?
+                is the *starts* strict?
+            reverse: bool
+                is the *starts* reversed?
 
         Raises
         ------
@@ -1024,32 +1150,38 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> a.starts(Atomic.from_tuple((20, 40, None)))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> a.starts(Atomic[int].from_tuple((20, 40, None)))
             False
-            >>> a.starts(Atomic.from_tuple((10, 40, None)), strict=False)
+            >>> a.starts(Atomic[int].from_tuple((10, 40, None)), strict=False)
             True
         """
-        if other is EMPTY:
-            return False
-        if not isinstance(other, Interval):
+        if not isinstance(other, part.Atomic):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if reverse:
+            return other.starts(self, strict=strict)
+        if not other:
+            return False
         if strict:
             return self._lower == other.lower and self._upper < other.upper
         return self._lower.near(other.lower) and self._upper <= other.upper
 
-    def during(self, other: Atomic, strict: bool = True) -> bool:
+    def during(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset is during the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the during strict?
+                is the *during* strict?
+            reverse: bool
+                is the *during* reversed?
 
         Raises
         ------
@@ -1062,30 +1194,36 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> a.during(Atomic.from_tuple((0, 30)))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> a.during(Atomic[int].from_tuple((0, 30)))
             True
         """
-        if other is EMPTY:
-            return False
-        if not isinstance(other, Interval):
+        if not isinstance(other, part.Atomic):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if reverse:
+            return other.during(self, strict=strict)
+        if not other:
+            return False
         if strict:
             return self._lower > other.lower and self._upper < other.upper
         return self._lower >= other.lower and self._upper <= other.upper
 
-    def finishes(self, other: Atomic, strict: bool = True) -> bool:
+    def finishes(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
         """
         Return :data:`True <python:True>` if the subset finishes the *other*.
 
         Arguments
         ---------
-            other: object
-                Any python value
+            other: :class:`Atomic`
+                Another atomic object.
             strict: bool
-                is the finish strict?
+                is the *finishes* strict?
+            reverse: bool
+                is the *finishes* reversed?
 
         Raises
         ------
@@ -1098,16 +1236,18 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
-            >>> a.finishes(Atomic.from_tuple((0, 20)))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> a.finishes(Atomic[int].from_tuple((0, 20)))
             True
         """
-        if other is EMPTY:
-            return False
-        if not isinstance(other, Interval):
+        if not isinstance(other, part.Atomic):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if reverse:
+            return other.finishes(self, strict=strict)
+        if not other:
+            return False
         if strict:
             return self._lower > other.lower and self._upper == other.upper
         return self._lower >= other.lower and self._upper.near(other.upper)
@@ -1121,14 +1261,14 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
             >>> print(a.lower)
             10+
         """
         return self._lower
 
     @property
-    def lower_value(self) -> Any:
+    def lower_value(self) -> TO:
         """
         Get the ``lower_value`` property.
 
@@ -1136,7 +1276,7 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
             >>> print(a.lower_value)
             10
         """
@@ -1151,7 +1291,7 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
             >>> print(a.lower_closed)
             None
         """
@@ -1166,14 +1306,14 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
             >>> print(a.upper)
             20-
         """
         return self._upper
 
     @property
-    def upper_value(self) -> Any:
+    def upper_value(self) -> TO:
         """
         Get the ``lower_value`` property.
 
@@ -1181,7 +1321,7 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
             >>> print(a.upper_value)
             20
         """
@@ -1196,14 +1336,14 @@ class Interval(Atomic):
         --------
 
             >>> from part import Atomic
-            >>> a = Atomic.from_tuple((10, 20, None))
+            >>> a = Atomic[int].from_tuple((10, 20, None))
             >>> print(a.upper_closed)
             None
         """
         return self._upper.type == 0 or None
 
 
-IntervalValue = Union[Interval, IntervalTuple]
+IntervalValue = Union[TO, Interval[TO], IntervalTuple[TO]]
 
 FULL: Interval = Interval()
 """

@@ -83,5 +83,6 @@ class NegativeInfinity(Singleton):
 
 INFINITY = PositiveInfinity()
 """
-:const:`INFINITY` represents the infinity value.
+:const:`INFINITY` represents the positive infinity value and
+:const:`-INFINITY` represents the negative infinity value.
 """
