@@ -1074,10 +1074,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.meets(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._upper == other.lower
         return self._upper.near(other.lower)
@@ -1116,10 +1116,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.overlaps(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower < other.lower < self._upper < other.upper
         return self._lower <= other.lower <= self._upper <= other.upper
@@ -1160,10 +1160,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.starts(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower == other.lower and self._upper < other.upper
         return self._lower.near(other.lower) and self._upper <= other.upper
@@ -1202,10 +1202,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.during(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower > other.lower and self._upper < other.upper
         return self._lower >= other.lower and self._upper <= other.upper
@@ -1244,10 +1244,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.finishes(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower > other.lower and self._upper == other.upper
         return self._lower >= other.lower and self._upper.near(other.upper)
