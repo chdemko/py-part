@@ -600,13 +600,8 @@ class MutableIntervalDict(
             >>> print(a)
             {'(-inf;+inf)': 0}
         """
-        interval = IntervalDict._interval(key)
+        interval = self._remove(key)
         if interval:
-            start = self._start(interval)
-            stop = self._stop(interval)
-            for index in range(start, stop):
-                del self._mapping[self._intervals[index]]
-            del self._intervals[start:stop]
             self._intervals.add(interval)
             self._mapping[interval] = value
 
@@ -643,6 +638,10 @@ class MutableIntervalDict(
             >>> print(a)
             {}
         """
+        self._remove(key)
+
+    def _remove(self, key):
+        # pylint: disable=protected-access
         interval = IntervalDict._interval(key)
         if interval:
             start = self._start(interval)
@@ -650,6 +649,7 @@ class MutableIntervalDict(
             for index in range(start, stop):
                 del self._mapping[self._intervals[index]]
             del self._intervals[start:stop]
+        return interval
 
     def _add(self, interval, value, function):
         if function is None:
