@@ -10,7 +10,7 @@ class IntervalTestCase(unittest.TestCase):
             MutableIntervalSet[int]([(0, 2), (5, 10), (13, 23), (24, 25)]),
         )
         self.assertNotIn(
-            Interval[int](1, 2),
+            Interval[int](1, 3),
             MutableIntervalSet[int]([(0, 2), (5, 10), (13, 23), (24, 25)]),
         )
 

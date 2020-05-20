@@ -4,7 +4,7 @@ import argparse
 import random
 import time
 
-from part import FrozenIntervalSet, FULL
+from part import FrozenIntervalSet, Interval
 
 parser = argparse.ArgumentParser(
     description="Benchmark of the intersection of sorted interval sets. "
@@ -27,10 +27,10 @@ for run in range(args.runs):
         for cursor in range(args.length):
             rand = random.randrange(args.range)
             current.append((rand, rand + 1))
-        lists.append(FrozenIntervalSet(current))
+        lists.append(FrozenIntervalSet[int](current))
         interval_count += len(lists[-1])
     start = time.time()
-    count += len(FrozenIntervalSet([FULL]).intersection(*lists))
+    count += len(FrozenIntervalSet[int]([Interval[int]()]).intersection(*lists))
     end = time.time()
     total += end - start
 print(

@@ -38,6 +38,31 @@ class IntervalDict(
 
     * :class:`FrozenIntervalDict`
     * :class:`MutableIntervalDict`
+
+    Note
+    ----
+        Les :math:`n` (or :math:`n_0`)  the number of intervals of the *self* variable
+        and :math:`m` the number of intervals in the *other* variable. Let
+        :math:`n_1, ... n_k` the number of intervals for methods with multiple
+        arguments.
+
+        The complexity in time of methods is:
+
+        ============================  ===================================
+        Methods                       Average case
+        ============================  ===================================
+        :meth:`__len__`               :math:`O(1)`
+        :meth:`__getitem__`           :math:`O(1)`
+        :meth:`__iter__`              :math:`O(1)`
+        :meth:`__contains__`          :math:`O(\\log(n))`
+        :meth:`__getitem__`           :math:`O(\\log(n))`
+        :meth:`__or__`                :math:`O(m\\log(n+m))`
+        :meth:`copy`                  :math:`O(n)`
+        :meth:`select`                :math:`O(\\log(n))`
+        :meth:`compress`              :math:`O(n)`
+        ============================  ===================================
+
+        The iteration using :meth:`__iter__` or :meth:`select` is in :math:`O(n)`.
     """
 
     __slots__ = ("_intervals", "_mapping")
@@ -481,6 +506,25 @@ class MutableIntervalDict(
     The :class:`MutableIntervalDict` class (which inherits from the
     :class:`IntervalDict` class) is designed to hold mutable dict of disjoint sorted
     intervals.
+
+    Note
+    ----
+        Les :math:`n` (or :math:`n_0`)  the number of intervals of the *self* variable
+        and :math:`m` the number of intervals in the *other* variable. Let
+        :math:`n_1, ... n_k` the number of intervals for methods with multiple
+        arguments.
+
+        The complexity in time of methods is:
+
+        =========================  ====================================================
+        Methods                    Average case
+        =========================  ====================================================
+        :meth:`__setitem__`        :math:`O(n)`
+        :meth:`__delitem__`        :math:`O(n)`
+        :meth:`__ior__`            :math:`O(m\\log(n+m))`
+        :meth:`update`             :math:`O((\\sum_{i=1}^kn_i)\\log(\\sum_{i=0}^kn_i))`
+        :meth:`clear`              :math:`O(1)`
+        =========================  ====================================================
     """
 
     __slots__ = ("_default", "_update")
