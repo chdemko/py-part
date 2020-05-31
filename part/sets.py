@@ -35,6 +35,59 @@ class IntervalSet(
 
     * :class:`FrozenIntervalSet`
     * :class:`MutableIntervalSet`
+
+    Note
+    ----
+        Les :math:`n` (or :math:`n_0`)  the number of intervals of the *self* variable
+        and :math:`m` the number of intervals in the *other* variable. Let
+        :math:`n_1, ... n_k` the number of intervals for methods with multiple
+        arguments.
+
+        The complexity in time of methods is:
+
+        ============================  ===================================
+        Methods                       Average case
+        ============================  ===================================
+        :meth:`__len__`               :math:`O(1)`
+        :meth:`__contains__`          :math:`O(\\log(n))`
+        :meth:`__getitem__`           :math:`O(1)`
+        :meth:`__iter__`              :math:`O(1)`
+        :meth:`__invert__`            :math:`O(n)`
+        :meth:`__reversed__`          :math:`O(n)`
+        :meth:`__eq__`                :math:`O(n)`
+        :meth:`__ne__`                :math:`O(n)`
+        :meth:`__le__`                :math:`O(n\\log(m))`
+        :meth:`__lt__`                :math:`O(n\\log(m))`
+        :meth:`__ge__`                :math:`O(m\\log(n))`
+        :meth:`__gt__`                :math:`O(m\\log(n))`
+        :meth:`__and__`               :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`__or__`                :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`__sub__`               :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`__xor__`               :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`copy`                  :math:`O(n)`
+        :meth:`select`                :math:`O(\\log(n))`
+        :meth:`issuperset`            :math:`O(m\\log(n))`
+        :meth:`issubset`              :math:`O(n\\log(m))`
+        :meth:`union`                 :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        :meth:`intersection`          :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        :meth:`difference`            :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        :meth:`symmetric_difference`  :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        ============================  ===================================
+
+        The iteration using :meth:`__iter__` or :meth:`select` is in :math:`O(n)`.
+
+        ============================  ===========================================
+        Methods                       Worst Case (when different of average case)
+        ============================  ===========================================
+        :meth:`__and__`               :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`__or__`                :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`__sub__`               :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`__xor__`               :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`intersection`          :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        :meth:`union`                 :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        :meth:`difference`            :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        :meth:`symmetric_difference`  :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        ============================  ===========================================
     """
 
     __slots__ = ("_intervals",)
@@ -254,6 +307,45 @@ class IntervalSet(
             4
         """
         return len(self._intervals)  # type: ignore
+
+    def __contains__(self, value) -> bool:
+        """
+        Test the membership.
+
+        Arguments
+        ---------
+            value: object
+                The value to search.
+
+        Returns
+        -------
+            :data:`True <python:True>`
+                if the *value* is contained in self.
+            :data:`False <python:False>`
+                 otherwise.
+
+        Examples
+        --------
+
+            >>> from part import FrozenIntervalSet
+            >>> a = FrozenIntervalSet([(2, 8), (10, 11, True, True)])
+            >>> print(a)
+            [2;8) | [10;11]
+            >>> (10,13) in a
+            False
+            >>> (3,4) in a
+            True
+        """
+        try:
+            interval = atomic.Atomic.from_value(value)
+            index = self._bisect_left(interval)
+            return (
+                index < len(self)
+                and self[index].lower <= interval.lower
+                and interval.upper <= self[index].upper
+            )
+        except TypeError:
+            return False
 
     def __getitem__(self, item):
         """
@@ -519,6 +611,60 @@ class IntervalSet(
             items.append(intervals)
         return items
 
+    def _union(self, *args) -> Iterator[atomic.Interval[atomic.TO]]:
+        # pylint: disable=protected-access,no-member
+        items = IntervalSet._items(*args)
+
+        # prepare a heap of (inf, index, intervals, cursor)
+        heap = []
+        if self:
+            # insert the first interval of self
+            heap.append((self[0]._lower, 0, self, 0))
+
+        for index, intervals in enumerate(items):
+            if intervals:
+                heap.append((intervals[0]._lower, index + 1, intervals, 0))
+
+        max_sup = atomic.Mark(value=-values.INFINITY, type=1)
+        min_inf = atomic.Mark(value=+values.INFINITY, type=-1)
+
+        # transform into a priority queue O(n)
+        heapq.heapify(heap)
+
+        # Loop for each interval (there is k-n intervals remaining)
+        while heap:
+            # get the minimal inf
+            (inf, index, intervals, cursor) = heap[0]
+            sup = intervals[cursor]._upper
+
+            # output interval as a tuple if not empty
+            if inf > max_sup and not inf.near(max_sup):
+                if min_inf <= max_sup:
+                    interval = atomic.Interval[atomic.TO]()
+                    interval._lower = min_inf
+                    interval._upper = max_sup
+                    yield interval
+                min_inf = inf
+            max_sup = max(max_sup, sup)
+
+            search = atomic.Atomic.from_value(max_sup.value)
+
+            # get the next interval for this list using array bisection algorithm
+            cursor = intervals._bisect_left(search, lo=cursor + 1)
+            if cursor < len(intervals):
+                # remove first item and insert new item in O(log(n))
+                heapq.heapreplace(
+                    heap, (intervals[cursor]._lower, index, intervals, cursor)
+                )
+            else:
+                heapq.heappop(heap)
+
+        if min_inf <= max_sup:
+            interval = atomic.Interval[atomic.TO]()
+            interval._lower = min_inf
+            interval._upper = max_sup
+            yield interval
+
     def _intersection(self, *args) -> Iterator[atomic.Interval[atomic.TO]]:
         # pylint: disable=protected-access,no-member
         items = IntervalSet._items(*args)
@@ -574,59 +720,24 @@ class IntervalSet(
             else:
                 return
 
-    def _union(self, *args) -> Iterator[atomic.Interval[atomic.TO]]:
-        # pylint: disable=protected-access,no-member
-        items = IntervalSet._items(*args)
-
-        # prepare a heap of (inf, index, intervals, cursor)
-        heap = []
-        if self:
-            # insert the first interval of self
-            heap.append((self[0]._lower, 0, self, 0))
-
-        for index, intervals in enumerate(items):
-            if intervals:
-                heap.append((intervals[0]._lower, index + 1, intervals, 0))
-
-        max_sup = atomic.Mark(value=-values.INFINITY, type=1)
-        min_inf = atomic.Mark(value=+values.INFINITY, type=-1)
-
-        # transform into a priority queue O(n)
-        heapq.heapify(heap)
-
-        # Loop for each interval (there is k-n intervals remaining)
-        while heap:
-            # get the minimal inf
-            (inf, index, intervals, cursor) = heap[0]
-            sup = intervals[cursor]._upper
-
-            # output interval as a tuple if not empty
-            if inf > max_sup and not inf.near(max_sup):
-                if min_inf <= max_sup:
-                    interval = atomic.Interval[atomic.TO]()
-                    interval._lower = min_inf
-                    interval._upper = max_sup
-                    yield interval
-                min_inf = inf
-            max_sup = max(max_sup, sup)
-
-            search = atomic.Atomic.from_value(max_sup.value)
-
-            # get the next interval for this list using array bisection algorithm
-            cursor = intervals._bisect_left(search, lo=cursor + 1)
-            if cursor < len(intervals):
-                # remove first item and insert new item in O(log(n))
-                heapq.heapreplace(
-                    heap, (intervals[cursor]._lower, index, intervals, cursor)
-                )
-            else:
-                heapq.heappop(heap)
-
-        if min_inf <= max_sup:
-            interval = atomic.Interval[atomic.TO]()
-            interval._lower = min_inf
-            interval._upper = max_sup
-            yield interval
+    def _issubset(self, other: Iterable[atomic.IntervalValue[atomic.TO]], strict=False):
+        iterator = iter(self)
+        if not isinstance(other, IntervalSet):
+            other = FrozenIntervalSet[atomic.TO](other)
+        cursor = 0
+        subset = False
+        try:
+            while True:
+                # pylint: disable=protected-access
+                interval: atomic.Interval[atomic.TO] = next(iterator)
+                cursor = other._bisect_left(interval, lo=cursor)
+                during = other[cursor]
+                if interval._lower < during._lower or interval._upper > during._upper:
+                    return False
+                if interval._lower > during._lower or interval._upper < during._upper:
+                    subset = True
+        except StopIteration:
+            return not strict or subset
 
     def isdisjoint(self, other: Iterable[atomic.IntervalValue[atomic.TO]]) -> bool:
         """
@@ -704,24 +815,82 @@ class IntervalSet(
         # pylint: disable=protected-access
         return other._issubset(self)
 
-    def _issubset(self, other: Iterable[atomic.IntervalValue[atomic.TO]], strict=False):
-        iterator = iter(self)
-        if not isinstance(other, IntervalSet):
-            other = FrozenIntervalSet[atomic.TO](other)
-        cursor = 0
-        subset = False
-        try:
-            while True:
-                # pylint: disable=protected-access
-                interval: atomic.Interval[atomic.TO] = next(iterator)
-                cursor = other._bisect_left(interval, lo=cursor)
-                during = other[cursor]
-                if interval._lower < during._lower or interval._upper > during._upper:
-                    return False
-                if interval._lower > during._lower or interval._upper < during._upper:
-                    subset = True
-        except StopIteration:
-            return not strict or subset
+    def union(
+        self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
+    ) -> "IntervalSet[atomic.TO]":
+        """
+        Return the union of a list of sorted interval sets.
+
+        Arguments
+        ---------
+            *args : :class:`Iterable[IntervalValue] <python:typing.Iterable>`
+                An iterable of :class:`Atomic` or valid tuple for an interval
+                creation.
+
+        Returns
+        -------
+            :class:`IntervalSet`
+                a sorted interval set
+
+        Raises
+        ------
+            TypeError
+                if an argument is not iterable.
+
+        See also
+        --------
+
+            __or__: An union is equivalent to several :meth:`__or__`.
+
+        Examples
+        --------
+
+            >>> from part import FrozenIntervalSet
+            >>> print(
+            ...     FrozenIntervalSet[int]([(1, 3), (4, 10)]).union(
+            ...         FrozenIntervalSet[int]([(2, 5), (6, 8)]),
+            ...         FrozenIntervalSet[int]([(2, 3), (4, 11)])
+            ...     )
+            ... )
+            [1;11)
+            >>> print(FrozenIntervalSet[int]().union())
+            <BLANKLINE>
+            >>> print(FrozenIntervalSet[int]([(1, 3), (4, 10)]).union())
+            [1;3) | [4;10)
+            >>> print(FrozenIntervalSet[int]([(1, 3)]).union(
+            ...     FrozenIntervalSet[int]([(4, 10)]))
+            ... )
+            [1;3) | [4;10)
+            >>> print(FrozenIntervalSet[int]([(1, 3, True, True)]).union(
+            ...     FrozenIntervalSet[int]([(3, 10)]))
+            ... )
+            [1;10)
+            >>> print(FrozenIntervalSet[int]([(1, 3)]).union(
+            ...     FrozenIntervalSet[int]([(1, 3)]))
+            ... )
+            [1;3)
+            >>> print(
+            ...     FrozenIntervalSet[int]([(0, 2), (5, 10), (13, 23), (24, 25)]).union(
+            ...         FrozenIntervalSet[int](
+            ...             [
+            ...                 (1, 5, True, True),
+            ...                 (8, 12),
+            ...                 (15, 18),
+            ...                 (20, 24, True, True)
+            ...             ]
+            ...         ),
+            ...         FrozenIntervalSet[int](
+            ...             [(1, 9), (16, 30)]
+            ...         )
+            ...     )
+            ... )
+            [0;12) | [13;30)
+        """
+        result = self.__class__()
+        for item in self._union(*args):
+            # pylint: disable=protected-access
+            result._append(item)
+        return result
 
     def intersection(
         self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
@@ -748,7 +917,7 @@ class IntervalSet(
         See also
         --------
 
-            __and__: An intersection is equivalent to several :meth: `__and__`.
+            __and__: An intersection is equivalent to several :meth:`__and__`.
 
         Examples
         --------
@@ -802,84 +971,6 @@ class IntervalSet(
             result._append(item)
         return result
 
-    def union(
-        self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
-    ) -> "IntervalSet[atomic.TO]":
-        """
-        Return the union of a list of sorted interval sets.
-
-        Arguments
-        ---------
-            *args : :class:`Iterable[IntervalValue] <python:typing.Iterable>`
-                An iterable of :class:`Atomic` or valid tuple for an interval
-                creation.
-
-        Returns
-        -------
-            :class:`IntervalSet`
-                a sorted interval set
-
-        Raises
-        ------
-            TypeError
-                if an argument is not iterable.
-
-        See also
-        --------
-
-            __or__: An union is equivalent to several :meth: `__or__`.
-
-        Examples
-        --------
-
-            >>> from part import FrozenIntervalSet
-            >>> print(
-            ...     FrozenIntervalSet[int]([(1, 3), (4, 10)]).union(
-            ...         FrozenIntervalSet[int]([(2, 5), (6, 8)]),
-            ...         FrozenIntervalSet[int]([(2, 3), (4, 11)])
-            ...     )
-            ... )
-            [1;11)
-            >>> print(FrozenIntervalSet[int]().union())
-            <BLANKLINE>
-            >>> print(FrozenIntervalSet[int]([(1, 3), (4, 10)]).union())
-            [1;3) | [4;10)
-            >>> print(FrozenIntervalSet[int]([(1, 3)]).union(
-            ...     FrozenIntervalSet[int]([(4, 10)]))
-            ... )
-            [1;3) | [4;10)
-            >>> print(FrozenIntervalSet[int]([(1, 3, True, True)]).union(
-            ...     FrozenIntervalSet[int]([(3, 10)]))
-            ... )
-            [1;10)
-            >>> print(FrozenIntervalSet[int]([(1, 3)]).union(
-            ...     FrozenIntervalSet[int]([(1, 3)]))
-            ... )
-            [1;3)
-            >>> print(
-            ...     FrozenIntervalSet[int]([(0, 2), (5, 10), (13, 23), (24, 25)]).union(
-            ...         FrozenIntervalSet[int](
-            ...             [
-            ...                 (1, 5, True, True),
-            ...                 (8, 12),
-            ...                 (15, 18),
-            ...                 (20, 24, True, True)
-            ...             ]
-            ...         ),
-            ...         FrozenIntervalSet[int](
-            ...             [(1, 9), (16, 30)]
-            ...         )
-            ...     )
-            ... )
-            [0;12) | [13;30)
-        """
-        # TODO Precise algorithmic complexity for union and intersection.
-        result = self.__class__()
-        for item in self._union(*args):
-            # pylint: disable=protected-access
-            result._append(item)
-        return result
-
     def difference(
         self, *args: Iterable[atomic.IntervalValue[atomic.TO]]
     ) -> "IntervalSet[atomic.TO]":
@@ -905,7 +996,7 @@ class IntervalSet(
         See also
         --------
 
-            __sub__: A difference is equivalent to several :meth: `__sub__`.
+            __sub__: A difference is equivalent to several :meth:`__sub__`.
         """
         return self.intersection(~self.__class__().union(*args))
 
@@ -934,7 +1025,7 @@ class IntervalSet(
         See also
         --------
 
-            __xor__: A symmetric difference is equivalent to several :meth: `__xor__`.
+            __xor__: A symmetric difference is equivalent to several :meth:`__xor__`.
         """
         if not isinstance(other, IntervalSet):
             other = FrozenIntervalSet[atomic.TO](other)
@@ -1069,43 +1160,6 @@ class FrozenIntervalSet(
             self._hash = hash(tuple(self._intervals))
         return self._hash
 
-    def __contains__(self, value) -> bool:
-        """
-        Test the membership.
-
-        Arguments
-        ---------
-            value: object
-                The value to search.
-
-        Returns
-        -------
-            :data:`True <python:True>`
-                if the *value* is contained in self.
-            :data:`False <python:False>`
-                 otherwise.
-
-        Examples
-        --------
-
-            >>> from part import FrozenIntervalSet
-            >>> a = FrozenIntervalSet([(2, 8), (10, 11, True, True)])
-            >>> print(a)
-            [2;8) | [10;11]
-            >>> (10,13) in a
-            False
-        """
-        try:
-            interval = atomic.Atomic.from_value(value)
-            index = self._bisect_left(interval)
-            return (
-                index < len(self)
-                and self[index].lower <= interval.lower
-                and interval.upper <= self[index].upper
-            )
-        except TypeError:
-            return False
-
     def __getitem__(self, item):
         """
         Return the nth interval. The array access operator supports slicing.
@@ -1166,6 +1220,46 @@ class MutableIntervalSet(
 
     The :class:`MutableIntervalSet` class (which inherits from the :class:`IntervalSet`
     class) is designed to hold mutable disjoint sorted intervals.
+
+    Note
+    ----
+        Les :math:`n` (or :math:`n_0`)  the number of intervals of the *self* variable
+        and :math:`m` the number of intervals in the *other* variable. Let
+        :math:`n_1, ... n_k` the number of intervals for methods with multiple
+        arguments.
+
+        The complexity in time of methods is:
+
+        ===================================  ===================================
+        Methods                              Average case
+        ===================================  ===================================
+        :meth:`__iand__`                     :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`__ior__`                      :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`__isub__`                     :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`__ixor__`                     :math:`O(\\log^2(n)+\\log^2(m)))`
+        :meth:`update`                       :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        :meth:`intersection_update`          :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        :meth:`difference_update`            :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        :meth:`symmetric_difference_update`  :math:`O(\\sum_{i=0}^k\\log^2(n_i))`
+        :meth:`add`                          :math:`O(\\log(n))`
+        :meth:`remove`                       :math:`O(\\log(n))`
+        :meth:`discard`                      :math:`O(\\log(n))`
+        :meth:`pop`                          :math:`O(1)`
+        :meth:`clear`                        :math:`O(1)`
+        ===================================  ===================================
+
+        ===================================  ===========================================
+        Methods                              Worst Case (when different of average case)
+        ===================================  ===========================================
+        :meth:`__iand__`                     :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`__ior__`                      :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`__isub__`                     :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`__ixor__`                     :math:`O(m\\log(m)+n\\log(n))`
+        :meth:`update`                       :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        :meth:`intersection_update`          :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        :meth:`difference_update`            :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        :meth:`symmetric_difference_update`  :math:`O(\\sum_{i=0}^k n_i\\log(n_i))`
+        ===================================  ===========================================
     """
 
     __slots__ = ()
@@ -1198,34 +1292,6 @@ class MutableIntervalSet(
         """
         self._intervals: SortedSet = SortedSet()
         super().__init__(iterable)
-
-    def __contains__(self, item) -> bool:
-        """
-        Test the membership.
-
-        Arguments
-        ---------
-            item: object
-                The value to search.
-
-        Returns
-        -------
-            :data:`True <python:True>`
-                if the *value* is contained in self.
-            :data:`False <python:False>`
-                 otherwise.
-
-        Examples
-        --------
-
-            >>> from part import MutableIntervalSet
-            >>> a = MutableIntervalSet([(2, 8), (10, 11, True, True)])
-            >>> print(a)
-            [2;8) | [10;11]
-            >>> (10,13) in a
-            False
-        """
-        return item in self._intervals
 
     def __ior__(self, other) -> "MutableIntervalSet[atomic.TO]":  # type: ignore
         """

@@ -288,6 +288,31 @@ class Atomic(Generic[TO], ABC):
         return Atomic.from_tuple((value, value, True, True))
 
     @abstractmethod
+    def before(
+        self, other: "Atomic[TO]", strict: bool = True, reverse: bool = False
+    ) -> bool:
+        """
+        Return :data:`True <python:True>` if the subset is the before the *other*.
+
+        Arguments
+        ---------
+            other: :class:`Atomic`
+                Another atomic object.
+            strict: bool
+                is the *before* strict?
+            reverse: bool
+                is the *before* reversed?
+
+        Raises
+        ------
+            NotImplementedError
+                if the method is not implemented in the class.
+            TypeError
+                if *other* is not an instance of :class:`Atomic`
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def meets(
         self, other: "Atomic[TO]", strict: bool = True, reverse: bool = False
     ) -> bool:
@@ -471,6 +496,17 @@ class Empty(Generic[TO], Singleton, Atomic[TO]):
         return part.FrozenIntervalSet[part.TO]([Interval[TO]()])  # type: ignore
 
     # pylint: disable=unused-argument,no-self-use
+    def before(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
+        """See :meth:`Atomic.before`."""
+        if not isinstance(other, part.Atomic):
+            raise TypeError(
+                f"{other.__class__.__name__} argument must be an instance of Atomic"
+            )
+        return False
+
+    # pylint: disable=unused-argument,no-self-use
     def meets(
         self, other: Atomic[TO], strict: bool = True, reverse: bool = False
     ) -> bool:
@@ -566,6 +602,14 @@ class Mark(namedtuple("Mark", ["value", "type"])):
         return self.value == other.value and (
             self.type == 0 or other.type == 0 or self.type == other.type
         )
+
+    def next(self):
+        """Get the immediate next value."""
+        return Mark(self.value, self.type + 1)
+
+    def prev(self):
+        """Get the immediate previous value."""
+        return Mark(self.value, self.type - 1)
 
 
 class Interval(Generic[TO], Atomic[TO]):
@@ -1038,6 +1082,48 @@ class Interval(Generic[TO], Atomic[TO]):
         """
         return Atomic.from_tuple((value, +INFINITY, closed, None))  # type: ignore
 
+    def before(
+        self, other: Atomic[TO], strict: bool = True, reverse: bool = False
+    ) -> bool:
+        """
+        Return :data:`True <python:True>` if the subset is the before the *other*.
+
+        Arguments
+        ---------
+            other: :class:`Atomic`
+                Another atomic object.
+            strict: bool
+                is the *before* strict?
+            reverse: bool
+                is the *before* reversed?
+
+        Raises
+        ------
+            NotImplementedError
+                if the method is not implemented in the class.
+            TypeError
+                if *other* is not an instance of :class:`Atomic`
+
+        Examples
+        --------
+
+            >>> from part import Atomic
+            >>> a = Atomic[int].from_tuple((10, 20, None))
+            >>> a.before(Atomic[int].from_tuple((25, 30)))
+            True
+        """
+        if not isinstance(other, part.Atomic):
+            raise TypeError(
+                f"{other.__class__.__name__} argument must be an instance of Atomic"
+            )
+        if not isinstance(other, Interval):
+            return False
+        if reverse:
+            return other.before(self, strict=strict)
+        if strict:
+            return self._upper < other.lower
+        return self._upper <= other.lower
+
     def meets(
         self, other: Atomic[TO], strict: bool = True, reverse: bool = False
     ) -> bool:
@@ -1074,10 +1160,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.meets(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._upper == other.lower
         return self._upper.near(other.lower)
@@ -1116,10 +1202,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.overlaps(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower < other.lower < self._upper < other.upper
         return self._lower <= other.lower <= self._upper <= other.upper
@@ -1160,10 +1246,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.starts(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower == other.lower and self._upper < other.upper
         return self._lower.near(other.lower) and self._upper <= other.upper
@@ -1202,10 +1288,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.during(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower > other.lower and self._upper < other.upper
         return self._lower >= other.lower and self._upper <= other.upper
@@ -1244,10 +1330,10 @@ class Interval(Generic[TO], Atomic[TO]):
             raise TypeError(
                 f"{other.__class__.__name__} argument must be an instance of Atomic"
             )
+        if not isinstance(other, Interval):
+            return False
         if reverse:
             return other.finishes(self, strict=strict)
-        if not other:
-            return False
         if strict:
             return self._lower > other.lower and self._upper == other.upper
         return self._lower >= other.lower and self._upper.near(other.upper)

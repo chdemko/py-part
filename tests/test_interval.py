@@ -164,6 +164,46 @@ class IntervalTestCase(unittest.TestCase):
     def test___invert__(self):
         self.assertEqual(str(~Interval[int](0, 1)), "(-inf;0) | [1;+inf)")
 
+    def test_before(self):
+        self.assertTrue(
+            Interval[int](lower_value=0, upper_value=1).before(
+                Interval[int](lower_value=2, upper_value=3)
+            )
+        )
+        self.assertTrue(
+            Interval[int](lower_value=2, upper_value=3).before(
+                Interval[int](lower_value=0, upper_value=1), reverse=True
+            )
+        )
+        self.assertTrue(
+            Interval[int](lower_value=0, upper_value=1).before(
+                Interval[int](lower_value=1, upper_value=3)
+            )
+        )
+        self.assertFalse(
+            Interval[int](lower_value=0, upper_value=1, upper_closed=True).before(
+                Interval[int](lower_value=1, upper_value=3)
+            )
+        )
+        self.assertTrue(
+            Interval[int](lower_value=0, upper_value=1, upper_closed=True).before(
+                Interval[int](lower_value=1, upper_value=3), strict=False
+            )
+        )
+        self.assertTrue(
+            Interval[int](lower_value=0, upper_value=1, upper_closed=False).before(
+                Interval[int](lower_value=1, upper_value=3)
+            )
+        )
+        self.assertTrue(
+            Interval[int](lower_value=0, upper_value=1).before(
+                Interval[int](lower_value=1, lower_closed=False, upper_value=3)
+            )
+        )
+        self.assertFalse(Interval[int]().before(Empty[int]()))
+        with self.assertRaises(TypeError):
+            Interval[int]().before(None)
+
     def test_meets(self):
         self.assertTrue(
             Interval[int](lower_value=0, upper_value=1, upper_closed=True).meets(

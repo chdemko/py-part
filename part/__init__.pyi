@@ -290,9 +290,15 @@ class MutableIntervalDict(
     def __init__(
         self,
         iterable: Optional[
-            Union[Mapping, Iterable[Tuple[IntervalValue[TO], V]]]
+            Union[
+                IntervalDict[TO, V],
+                Mapping[IntervalValue[TO], V],
+                Iterable[Tuple[IntervalValue[TO], V]],
+            ]
         ] = None,
-        update: Optional[Callable[[Any, Any], Any]] = None,
+        default: Optional[Callable[[], V]] = None,
+        operator: Optional[Callable[[V, V], V]] = None,
+        strict: Optional[bool] = True,
     ) -> None: ...
     def __setitem__(self, key: Union[slice, IntervalValue[TO]], value) -> None: ...
     def __delitem__(self, key: Union[slice, IntervalValue[TO]]) -> None: ...
@@ -304,6 +310,4 @@ class MutableIntervalDict(
             Mapping[IntervalValue[TO], V],
             Iterable[Tuple[IntervalValue[TO], V]],
         ],
-        operator: Optional[Callable[[Any, Any], Any]] = None,
-        **kwargs
     ) -> None: ...
