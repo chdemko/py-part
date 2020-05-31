@@ -62,6 +62,11 @@ class IntervalTestCase(unittest.TestCase):
     def test___invert__(self):
         self.assertEqual(~Empty[int](), FrozenIntervalSet[int](~Empty[int]()))
 
+    def test_before(self):
+        self.assertFalse(Empty[int]().before(Interval[int]()))
+        with self.assertRaises(TypeError):
+            Empty[int]().before(None)
+
     def test_meets(self):
         self.assertFalse(Empty[int]().meets(Interval[int]()))
         with self.assertRaises(TypeError):

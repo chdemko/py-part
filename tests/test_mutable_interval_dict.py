@@ -418,7 +418,8 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             str(a),
             "{'[10;13)': 1, '[13;16)': 4, '[20;25)': 2, '[30;35)': 3, '[40;45)': 5}",
         )
-        a = MutableIntervalDict[int, int](default=set, update=lambda x, y: x.copy() | y)
+
+        a = MutableIntervalDict[int, set](default=set, operator=lambda x, y: x | y)
         a.update({(1, 10): {1}})
         self.assertEqual(str(a), "{'[1;10)': {1}}")
         a.update({(5, 20): {2}})
@@ -428,15 +429,80 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             str(a),
             "{'[1;5)': {1}, '[5;10)': {1, 2}, '[10;20)': {1, 2}, '[20;30)': {1}}",
         )
-        a = MutableIntervalDict[int, int](default=set)
-        a.update({(1, 10): {1}}, function=lambda x, y: x.copy() | y)
+
+        a = MutableIntervalDict[int, set](default=set, operator=lambda x, y: x | y)
+        a.update({(1, 10): {1}})
         self.assertEqual(str(a), "{'[1;10)': {1}}")
-        a.update({(5, 20): {2}}, function=lambda x, y: x.copy() | y)
+        a.update({(5, 20): {2}})
         self.assertEqual(str(a), "{'[1;5)': {1}, '[5;10)': {1, 2}, '[10;20)': {2}}")
+
+        a = MutableIntervalDict[int, set](operator=lambda x, y: x | y, strict=False)
+        a.update({(0, 30): {1}}, {(0, 30): {2}}, {(0, 50): {3}}, {(10, 20): {4}})
+        self.assertEqual(
+            str(a),
+            "{"
+            "'[0;10)': {1, 2, 3}, "
+            "'[10;20)': {1, 2, 3, 4}, "
+            "'[20;30)': {1, 2, 3}, "
+            "'[30;50)': {3}"
+            "}",
+        )
+
+        a = MutableIntervalDict[int, set](operator=lambda x, y: x | y, strict=True)
+        a.update(
+            {(0, 30): {1}, (40, 60): {5}},
+            {(0, 30): {2}},
+            {(0, 50): {3}},
+            {(10, 20): {4}, (70, 80): {6}},
+        )
+        self.assertEqual(
+            str(a),
+            "{"
+            "'[0;10)': {1, 2, 3}, "
+            "'[10;20)': {1, 2, 3, 4}, "
+            "'[20;30)': {1, 2, 3}, "
+            "'[30;40)': {3}, "
+            "'[40;50)': {3, 5}, "
+            "'[50;60)': {5}, "
+            "'[70;80)': {6}"
+            "}",
+        )
+
+        a = MutableIntervalDict[int, set](operator=lambda x, y: x | y, strict=False)
+        a.update(
+            {(0, 30): {1}, (40, 60): {5}},
+            {(0, 30): {2}},
+            {(0, 50): {3}},
+            {(10, 20): {4}, (70, 80): {6}},
+        )
+        self.assertEqual(
+            str(a),
+            "{"
+            "'[0;10)': {1, 2, 3}, "
+            "'[10;20)': {1, 2, 3, 4}, "
+            "'[20;30)': {1, 2, 3}, "
+            "'[30;40)': {3}, "
+            "'[40;50)': {3, 5}, "
+            "'[50;60)': {5}, "
+            "'[70;80)': {6}"
+            "}",
+        )
+
+        a = MutableIntervalDict[int, int](
+            operator=operator.add, default=lambda: 0, strict=False
+        )
+        a.update({(1, 10): 1})
+        self.assertEqual(str(a), "{'[1;10)': 1}")
+        a.update({(5, 20): 2})
+        self.assertEqual(str(a), "{'[1;5)': 1, '[5;10)': 3, '[10;20)': 2}")
+        a.update({(10, 30): 3})
+        self.assertEqual(
+            str(a), "{'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}"
+        )
 
     def test___or__(self):
         a = MutableIntervalDict[int, int](
-            {(10, 15): 1, (20, 25): 2, (30, 35): 3}, update=operator.add
+            {(10, 15): 1, (20, 25): 2, (30, 35): 3}, operator=operator.add
         )
         self.assertEqual(
             str(a | MutableIntervalDict[int, int]({(15, 22): 4})),
@@ -446,7 +512,7 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             a | None
 
     def test___ior__(self):
-        a = MutableIntervalDict[int, int](update=lambda x, y: x.copy() | y)
+        a = MutableIntervalDict[int, int](operator=lambda x, y: x | y)
         a |= MutableIntervalDict[int, int]({(1, 10): {1}})
         self.assertEqual(str(a), "{'[1;10)': {1}}")
         a |= MutableIntervalDict[int, int]({(5, 20): {2}})

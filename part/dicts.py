@@ -1,14 +1,17 @@
 """Interval dictionaries module."""
 
+# pylint: disable=too-many-lines
+
 import bisect
 import collections
+import itertools
 from abc import ABCMeta, abstractmethod
+from functools import reduce
 from typing import (
     Union,
     Mapping,
     Iterable,
     Tuple,
-    Any,
     List,
     Optional,
     Iterator,
@@ -19,7 +22,7 @@ from typing import (
 )
 
 # pylint: disable=import-error
-from sortedcontainers import SortedSet  # type: ignore
+from sortedcontainers import SortedSet, SortedList  # type: ignore
 
 from part import atomic, sets
 
@@ -470,11 +473,9 @@ class FrozenIntervalDict(
         """
         super().__init__()
         self._hash: Optional[int] = None
-        interval_dict = MutableIntervalDict[atomic.TO, V](iterable)
-        self._intervals: List[atomic.Interval] = list(  # type: ignore
-            interval_dict._intervals
-        )
-        self._mapping = interval_dict._mapping
+        other = MutableIntervalDict[atomic.TO, V](iterable)
+        self._intervals: List[atomic.Interval] = list(other._intervals)  # type: ignore
+        self._mapping = other._mapping
 
     def __hash__(self) -> int:
         """
@@ -527,19 +528,20 @@ class MutableIntervalDict(
         =========================  ====================================================
     """
 
-    __slots__ = ("_default", "_update")
+    __slots__ = ("_default", "_operator", "_strict")
 
     def __init__(
         self,
         iterable: Optional[
             Union[
-                IntervalDict,
+                IntervalDict[atomic.TO, V],
                 Mapping[atomic.IntervalValue[atomic.TO], V],
                 Iterable[Tuple[atomic.IntervalValue[atomic.TO], V]],
             ]
         ] = None,
-        default: Optional[Callable[[], Any]] = None,
-        update: Optional[Callable[[Any, Any], Any]] = None,
+        default: Optional[Callable[[], V]] = None,
+        operator: Optional[Callable[[V, V], V]] = None,
+        strict: Optional[bool] = True,
     ) -> None:
         """
         Initialize a :class:`MutableIntervalDict` instance.
@@ -552,16 +554,29 @@ class MutableIntervalDict(
 
         Keyword arguments
         -----------------
-            default: :class:`Callable[[], Any] <python:typing.Callable>`, optional
+            default: :class:`Callable[[], V] <python:typing.Callable>`, optional
                 The default factory.
-            update: :class:`Callable[[Any, Any], Any] <python:typing.Callable>`
-                The update function.
+            operator: :class:`Callable[[V, V], V] <python:typing.Callable>`
+                The operator function.
+            strict: bool
+                :data:`False <python:False>` if ``operator`` is a commutative and
+                associative law on ``V``.
+
+        Note
+        ----
+
+            If  ``operator`` is a commutative and associative law on ``V``,
+            the complexity in time is much faster if ``strict`` is set to
+            :data:`False <python:False>`.
 
         Examples
         --------
 
             >>> from part import MutableIntervalDict
-            >>> a = MutableIntervalDict[int, set](update=lambda x, y: x.copy() | y)
+            >>> a = MutableIntervalDict[int, set](
+            ...     operator=lambda x, y: x | y,
+            ...     strict=False
+            ... )
             >>> a.update({(1, 10): {1}})
             >>> print(a)
             {'[1;10)': {1}}
@@ -576,7 +591,8 @@ class MutableIntervalDict(
         """
         super().__init__()
         self._default = default
-        self._update = update
+        self._operator = operator
+        self._strict = strict
         self._mapping = {}
         self._intervals: SortedSet = SortedSet()
         if iterable is not None:
@@ -695,13 +711,13 @@ class MutableIntervalDict(
             del self._intervals[start:stop]
         return interval
 
-    def _add(self, interval, value, function):
-        if function is None:
+    def _add(self, interval, value):
+        if self._operator is None:
             self[interval] = value
         else:
             intervals = list(self.select(interval, strict=False))
             for another in ((interval & found)[0] for found in intervals):
-                self[another] = function(self[another], value)
+                self[another] = self._operator(self[another], value)
             for another in sets.FrozenIntervalSet[atomic.TO](
                 [interval]
             ) - sets.FrozenIntervalSet[atomic.TO](intervals):
@@ -727,14 +743,17 @@ class MutableIntervalDict(
             >>> from part import MutableIntervalDict
             >>> a = MutableIntervalDict[int, int](
             ...     {(10, 15): 1, (20, 25): 2, (30, 35): 3},
-            ...     update=lambda x, y: x + y
+            ...     operator=lambda x, y: x + y,
+            ...     strict=False
             ... )
             >>> print(a | FrozenIntervalDict[int, int]({(15, 22): 4}))
             {'[10;15)': 1, '[15;20)': 4, '[20;22)': 6, '[22;25)': 2, '[30;35)': 3}
         """
         if not isinstance(other, IntervalDict):
             return NotImplemented
-        result = self.__class__(self, default=self._default, update=self._update)
+        result = self.__class__(
+            self, default=self._default, operator=self._operator, strict=self._strict
+        )
         result.update(other)
         return result
 
@@ -756,7 +775,10 @@ class MutableIntervalDict(
         --------
 
             >>> from part import MutableIntervalDict
-            >>> a = MutableIntervalDict[int, int](update=lambda x, y: x + y)
+            >>> a = MutableIntervalDict[int, int](
+            ...     operator=lambda x, y: x + y,
+            ...     strict=False
+            ... )
             >>> a |= MutableIntervalDict[int, int]({(1, 10): 1})
             >>> print(a)
             {'[1;10)': 1}
@@ -780,8 +802,6 @@ class MutableIntervalDict(
             Mapping[atomic.IntervalValue[atomic.TO], V],
             Iterable[Tuple[atomic.IntervalValue[atomic.TO], V]],
         ],
-        function: Optional[Callable[[Any, Any], Any]] = None,
-        **_dummy,
     ) -> None:
         """
         Update the dict.
@@ -792,12 +812,6 @@ class MutableIntervalDict(
                 An iterable of :class:`IntervalDict` or valid iterable for an interval
                 dictionary creation.
 
-        Keyword arguments
-        -----------------
-            function: :class:`Callable[[Any, Any], Any] <python:typing.Callable>`
-                The update function. This function overrides the default update
-                function.
-
         Raises
         ------
             TypeError
@@ -807,29 +821,135 @@ class MutableIntervalDict(
         --------
 
             >>> from part import MutableIntervalDict
-            >>> import operator
-            >>> a = MutableIntervalDict[int, int]()
-            >>> a.update({(1, 10): 1}, function=operator.add)
+            >>> from operator import add
+            >>> a = MutableIntervalDict[int, int](
+            ...     operator=add,
+            ...     default=lambda: 0,
+            ...     strict=False
+            ... )
+            >>> a.update({(1, 10): 1})
             >>> print(a)
             {'[1;10)': 1}
-            >>> a.update({(5, 20): 2}, function=operator.add)
+            >>> a.update({(5, 20): 2})
             >>> print(a)
             {'[1;5)': 1, '[5;10)': 3, '[10;20)': 2}
-            >>> a.update({(10, 30): 3}, function=operator.add)
+            >>> a.update({(10, 30): 3})
             >>> print(a)
             {'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}
         """
-        if function is None:
-            function = self._update
+        # TODO determine complexity
+        strict = self._strict
+        operator = self._operator
+        if strict or operator is None:
+            self._strict_update(*args)
+        else:
+            self._enhanced_update(*args, operator=operator)
+
+    def _strict_update(
+        self,
+        *args: Union[
+            IntervalDict,
+            Mapping[atomic.IntervalValue[atomic.TO], V],
+            Iterable[Tuple[atomic.IntervalValue[atomic.TO], V]],
+        ],
+    ) -> None:
         for other in args:
             if isinstance(other, collections.abc.Mapping):
                 for key, value in other.items():
-                    self._add(atomic.Atomic.from_value(key), value, function)
+                    self._add(atomic.Atomic.from_value(key), value)
             elif isinstance(other, collections.abc.Iterable):
                 for key, value in other:  # type: ignore
-                    self._add(atomic.Atomic.from_value(key), value, function)
+                    self._add(atomic.Atomic.from_value(key), value)
             else:
                 raise TypeError(f"{type(other)} object is not iterable")
+
+    # pylint: disable=protected-access
+    def _create(self, *args):
+        # Create a list of non empty IntervalDict
+        elements = []
+        for element in itertools.chain([self], args):
+            if not isinstance(element, IntervalDict):
+                element = FrozenIntervalDict(element)
+            if element:
+                elements.append(element)
+
+        cursors = [0] * len(elements)
+
+        current = SortedList()
+
+        rest = SortedList()
+        for index, element in enumerate(elements):
+            if cursors[index] < len(element):
+                interval = element._intervals[cursors[index]]
+                value = element._mapping[interval]
+                rest.add((interval.lower, interval.upper, index, value))
+
+        return (elements, cursors, current, rest)
+
+    # pylint: disable=too-many-arguments,protected-access
+    @classmethod
+    def _next(cls, upper, elements, cursors, current, rest):
+
+        # Remove useless elements from current
+        while current and current[0][0] == upper:
+            (_, _, index, _) = current[0]
+            del current[0]
+            cursors[index] += 1
+            element = elements[index]
+            if cursors[index] < len(element):
+                interval = element._intervals[cursors[index]]
+                value = element._mapping[interval]
+                rest.add((interval.lower, interval.upper, index, value))
+
+        if current or not rest:
+            lower = upper.next()
+        else:
+            lower = rest[0][0]
+
+        # Move elements from rest to current
+        while rest and rest[0][0] == lower:
+            (lower, upper, index, value) = rest[0]
+            del rest[0]
+            current.add((upper, lower, index, value))
+
+        if current:
+            upper = current[0][0]
+        if rest:
+            upper = min(upper, rest[0][0].prev())
+
+        return (lower, upper)
+
+    def _enhanced_update(
+        self,
+        *args: Union[
+            IntervalDict,
+            Mapping[atomic.IntervalValue[atomic.TO], V],
+            Iterable[Tuple[atomic.IntervalValue[atomic.TO], V]],
+        ],
+        operator: Optional[Callable[[V, V], V]] = None,
+    ) -> None:
+        intervals = []
+        mapping = {}
+
+        (elements, cursors, current, rest) = self._create(*args)
+        (lower, upper) = self._next(-atomic.INFINITY, elements, cursors, current, rest)
+
+        while current:
+            interval = atomic.Interval[atomic.TO](
+                lower_value=lower.value,
+                lower_closed=lower.type == 0,
+                upper_value=upper.value,
+                upper_closed=upper.type == 0,
+            )
+            value = reduce(
+                operator, (value for (_, _, _, value) in current)  # type: ignore
+            )
+            intervals.append(interval)
+            mapping[interval] = value
+            (lower, upper) = self._next(upper, elements, cursors, current, rest)
+
+        self._intervals = intervals
+        self._mapping = mapping
 
     def clear(self) -> None:
         """Remove all items from self (same as del self[:])."""
