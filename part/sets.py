@@ -50,7 +50,7 @@ class IntervalSet(
         ============================  ===================================
         :meth:`__len__`               :math:`O(1)`
         :meth:`__contains__`          :math:`O(\\log(n))`
-        :meth:`__getitem__`           :math:`O(1)`
+        :meth:`__getitem__`           :math:`O(1)` :math:`O(\\log(n))`
         :meth:`__iter__`              :math:`O(1)`
         :meth:`__invert__`            :math:`O(n)`
         :meth:`__reversed__`          :math:`O(n)`
@@ -1244,7 +1244,7 @@ class MutableIntervalSet(
         :meth:`add`                          :math:`O(\\log(n))`
         :meth:`remove`                       :math:`O(\\log(n))`
         :meth:`discard`                      :math:`O(\\log(n))`
-        :meth:`pop`                          :math:`O(1)`
+        :meth:`pop`                          :math:`O(1)` :math:`O(\\log(n))`
         :meth:`clear`                        :math:`O(1)`
         ===================================  ===================================
 
