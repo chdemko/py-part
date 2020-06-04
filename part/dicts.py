@@ -825,17 +825,29 @@ class MutableIntervalDict(
             >>> a = MutableIntervalDict[int, int](
             ...     operator=add,
             ...     default=lambda: 0,
-            ...     strict=False
             ... )
             >>> a.update({(1, 10): 1})
             >>> print(a)
             {'[1;10)': 1}
-            >>> a.update({(5, 20): 2})
-            >>> print(a)
-            {'[1;5)': 1, '[5;10)': 3, '[10;20)': 2}
-            >>> a.update({(10, 30): 3})
+            >>> a.update(
+            ...     FrozenIntervalDict[int, int]({(5, 20): 2}),
+            ...     FrozenIntervalDict[int, int]({(10, 30): 3})
+            ... )
             >>> print(a)
             {'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}
+            >>> a = MutableIntervalDict[int, set](
+            ...     operator=lambda x, y: x | y,
+            ...     strict=False
+            ... )
+            >>> a.update({(1, 10): {1}})
+            >>> print(a)
+            {'[1;10)': {1}}
+            >>> a.update(
+            ...     FrozenIntervalDict[int, set]({(5, 20): {2}}),
+            ...     FrozenIntervalDict[int, set]({(10, 30): {3}})
+            ... )
+            >>> print(a)
+            {'[1;5)': {1}, '[5;10)': {1, 2}, '[10;20)': {2, 3}, '[20;30)': {3}}
         """
         # TODO determine complexity
         strict = self._strict
@@ -843,7 +855,7 @@ class MutableIntervalDict(
         if strict or operator is None:
             self._strict_update(*args)
         else:
-            self._enhanced_update(*args, operator=operator)
+            self._enhanced_update(*args)
 
     def _strict_update(
         self,
@@ -926,7 +938,6 @@ class MutableIntervalDict(
             Mapping[atomic.IntervalValue[atomic.TO], V],
             Iterable[Tuple[atomic.IntervalValue[atomic.TO], V]],
         ],
-        operator: Optional[Callable[[V, V], V]] = None,
     ) -> None:
         intervals = []
         mapping = {}
@@ -942,7 +953,7 @@ class MutableIntervalDict(
                 upper_closed=upper.type == 0,
             )
             value = reduce(
-                operator, (value for (_, _, _, value) in current)  # type: ignore
+                self._operator, (value for (_, _, _, value) in current)  # type: ignore
             )
             intervals.append(interval)
             mapping[interval] = value
