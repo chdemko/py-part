@@ -19,7 +19,8 @@ parser.add_argument("range", metavar="R", type=int, help="range unit intervals")
 args = parser.parse_args()
 
 count = 0
-total = 0
+total1 = 0
+total2 = 0
 interval_count = 0
 for run in range(args.runs):
     dicts = []
@@ -30,14 +31,27 @@ for run in range(args.runs):
             current.append(((rand, rand + 1), 1))
         dicts.append(MutableIntervalDict[int, int](current))
         interval_count += len(dicts[-1])
-    start = time.time()
+
+    start1 = time.time()
     result = MutableIntervalDict[int, int](operator=operator.add, strict=False)
     result.update(*dicts)
     count += len(result)
-    end = time.time()
-    total += end - start
+    end1 = time.time()
+    total1 += end1 - start1
+
+    start2 = time.time()
+    result = MutableIntervalDict[int, int](operator=operator.add, strict=True)
+    result.update(*dicts)
+    count += len(result)
+    end2 = time.time()
+    total2 += end2 - start2
 print(
     f"{count / args.runs},"
     f"{interval_count / args.runs / args.count},"
-    f"{total / args.runs}"
+    f"{total1 / args.runs}"
+)
+print(
+    f"{count / args.runs},"
+    f"{interval_count / args.runs / args.count},"
+    f"{total2 / args.runs}"
 )
