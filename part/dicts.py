@@ -217,15 +217,20 @@ class IntervalDict(
         """
         if isinstance(key, slice):
             search = IntervalDict._from_slice(key)
-            result = []
+            intervals = self._intervals.__class__()  # type: ignore
+            mapping = {}
             for found in self.select(search, strict=False):
                 value = self._mapping[found]
                 interval = atomic.Interval()  # type: ignore
                 interval._lower = max(found.lower, search.lower)
                 interval._upper = min(found.upper, search.upper)
-                result.append((interval, value))
+                intervals.append(interval)
+                mapping[interval] = value
             # pylint: disable=too-many-function-args
-            return self.__class__(result)  # type: ignore
+            result = self.__class__()
+            result._intervals = intervals
+            result._mapping = mapping
+            return result  # type: ignore
         interval = IntervalDict._interval(key)
         index = self._bisect_left(interval)
         if index < len(self._intervals):  # type: ignore
