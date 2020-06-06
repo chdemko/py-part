@@ -177,7 +177,7 @@ class IntervalDict(
             return interval.during(other, strict=False)
         return False
 
-    def __getitem__(self, key: Union[slice, atomic.IntervalValue[atomic.TO]]) -> V:
+    def __getitem__(self, key: Union[atomic.IntervalValue[atomic.TO], slice]) -> V:
         """
         Return a value using either a slice or an interval value.
 
@@ -188,7 +188,7 @@ class IntervalDict(
 
         Returns
         -------
-            The found value
+            The found value or a new :class:`IntervalDict` if key is a slice.
 
         Raises
         ------
