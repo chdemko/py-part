@@ -597,10 +597,16 @@ class MutableIntervalDict(
         self._default = default
         self._operator = operator
         self._strict = strict
-        self._mapping = {}
-        self._intervals: SortedSet = SortedSet()
-        if iterable is not None:
-            self.update(iterable)
+        if isinstance(iterable, IntervalDict):
+            self._mapping = iterable._mapping.copy()
+            self._intervals = SortedSet(iterable._intervals)
+        else:
+            self._mapping = {}
+            self._intervals: SortedSet = SortedSet()
+            if isinstance(iterable, dict):
+                self.update(*({key: value} for key, value in iterable.items()))
+            elif iterable is not None:
+                self.update(*({key: value} for key, value in iterable))  # type: ignore
 
     def __getitem__(self, key: Union[slice, atomic.IntervalValue[atomic.TO]]) -> V:
         """
