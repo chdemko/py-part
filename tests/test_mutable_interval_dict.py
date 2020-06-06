@@ -518,6 +518,9 @@ class MutableIntervalDictTestCase(unittest.TestCase):
             str(a), "{'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}"
         )
 
+        with self.assertRaises(TypeError):
+            MutableIntervalDict[int, int]().update(None)
+
     def test___or__(self):
         a = MutableIntervalDict[int, int](
             {(10, 15): 1, (20, 25): 2, (30, 35): 3}, operator=operator.add
