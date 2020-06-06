@@ -55,10 +55,9 @@ class IntervalDict(
         Methods                       Average case
         ============================  ===================================
         :meth:`__len__`               :math:`O(1)`
-        :meth:`__getitem__`           :math:`O(1)`
         :meth:`__iter__`              :math:`O(1)`
         :meth:`__contains__`          :math:`O(\\log(n))`
-        :meth:`__getitem__`           :math:`O(\\log(n))`
+        :meth:`__getitem__`           :math:`O(\\log(n))` :math:`O(n)`
         :meth:`__or__`                :math:`O(m\\log(n+m))`
         :meth:`copy`                  :math:`O(n)`
         :meth:`select`                :math:`O(\\log(n))`
