@@ -969,7 +969,7 @@ class MutableIntervalDict(
             mapping[interval] = value
             (lower, upper) = self._next(upper, elements, cursors, current, rest)
 
-        self._intervals = intervals
+        self._intervals = SortedSet(intervals)
         self._mapping = mapping
 
     def clear(self) -> None:
