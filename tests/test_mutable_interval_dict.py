@@ -1,6 +1,8 @@
 import unittest
 import operator
 
+from sortedcontainers import SortedSet
+
 from part import MutableIntervalDict, FrozenIntervalSet, Interval, Atomic
 
 
@@ -517,6 +519,7 @@ class MutableIntervalDictTestCase(unittest.TestCase):
         self.assertEqual(
             str(a), "{'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}"
         )
+        self.assertIsInstance(a._intervals, SortedSet)
 
         with self.assertRaises(TypeError):
             MutableIntervalDict[int, int]().update(None)
