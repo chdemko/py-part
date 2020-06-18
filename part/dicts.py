@@ -897,6 +897,14 @@ class MutableIntervalDict(
                 raise TypeError(f"{type(other)} object is not iterable")
 
     # pylint: disable=protected-access
+    @classmethod
+    def _rest(cls, rest, cursors, index, element):
+        if cursors[index] < len(element):
+            interval = element._intervals[cursors[index]]
+            value = element._mapping[interval]
+            rest.add((interval.lower, interval.upper, index, value))
+
+    # pylint: disable=protected-access
     def _create(self, *args):
         # Create a list of non empty IntervalDict
         elements = []
@@ -912,10 +920,7 @@ class MutableIntervalDict(
 
         rest = SortedList()
         for index, element in enumerate(elements):
-            if cursors[index] < len(element):
-                interval = element._intervals[cursors[index]]
-                value = element._mapping[interval]
-                rest.add((interval.lower, interval.upper, index, value))
+            self._rest(rest, cursors, index, element)
 
         return (elements, cursors, current, rest)
 
@@ -929,10 +934,7 @@ class MutableIntervalDict(
             del current[0]
             cursors[index] += 1
             element = elements[index]
-            if cursors[index] < len(element):
-                interval = element._intervals[cursors[index]]
-                value = element._mapping[interval]
-                rest.add((interval.lower, interval.upper, index, value))
+            cls._rest(rest, cursors, index, element)
 
         if current or not rest:
             lower = upper.next()
