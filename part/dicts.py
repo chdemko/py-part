@@ -827,6 +827,17 @@ class MutableIntervalDict(
             TypeError
                 if an argument is not iterable.
 
+        Note
+        ----
+            If the parameter ``strict`` used in the constructor is :data:`False
+            <python:False>`, the complexity is in :math:`O(n\\,log(n)\\,k\\,\\lambda)`
+            where:
+
+            * :math:`n` is the length of ``*args``;
+            * :math:`k` is the number of output intervals;
+            * :math:`\\lambda` is the the cost of the ``operator`` parameter used in
+              the constructor.
+
         Examples
         --------
 
