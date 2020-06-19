@@ -49,7 +49,7 @@ class IntervalDict(
         :math:`n_1, ... n_k` the number of intervals for methods with multiple
         arguments.
 
-        The complexity in time of methods is:
+        The complexity in time of methods is estimated at (it has to be proven):
 
         ============================  ===================================
         Methods                       Average case
