@@ -1,4 +1,4 @@
-# python benchmark.py -h
+# python benchmark_sets.py -h
 
 import argparse
 import random
@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(
     "input intervals and the average time in seconds."
 )
 parser.add_argument("runs", metavar="#", type=int, help="number of runs")
-parser.add_argument("count", metavar="N", type=int, help="number of lists")
+parser.add_argument("count", metavar="N", type=int, help="number of sets")
 parser.add_argument("length", metavar="K", type=int, help="number of unit intervals")
 parser.add_argument("range", metavar="R", type=int, help="range unit intervals")
 args = parser.parse_args()
@@ -21,16 +21,16 @@ count = 0
 total = 0
 interval_count = 0
 for run in range(args.runs):
-    lists = []
+    sets = []
     for index in range(args.count):
         current = []
         for cursor in range(args.length):
             rand = random.randrange(args.range)
             current.append((rand, rand + 1))
-        lists.append(FrozenIntervalSet[int](current))
-        interval_count += len(lists[-1])
+        sets.append(FrozenIntervalSet[int](current))
+        interval_count += len(sets[-1])
     start = time.time()
-    count += len(FrozenIntervalSet[int]([Interval[int]()]).intersection(*lists))
+    count += len(FrozenIntervalSet[int]([Interval[int]()]).intersection(*sets))
     end = time.time()
     total += end - start
 print(

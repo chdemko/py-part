@@ -49,16 +49,16 @@ class IntervalDict(
         :math:`n_1, ... n_k` the number of intervals for methods with multiple
         arguments.
 
-        The complexity in time of methods is:
+        The complexity in time of methods is estimated at (it has to be proven,
+        see https://github.com/chdemko/py-part/issues/3):
 
         ============================  ===================================
         Methods                       Average case
         ============================  ===================================
         :meth:`__len__`               :math:`O(1)`
-        :meth:`__getitem__`           :math:`O(1)`
         :meth:`__iter__`              :math:`O(1)`
         :meth:`__contains__`          :math:`O(\\log(n))`
-        :meth:`__getitem__`           :math:`O(\\log(n))`
+        :meth:`__getitem__`           :math:`O(\\log(n))` :math:`O(n)`
         :meth:`__or__`                :math:`O(m\\log(n+m))`
         :meth:`copy`                  :math:`O(n)`
         :meth:`select`                :math:`O(\\log(n))`
@@ -177,7 +177,7 @@ class IntervalDict(
             return interval.during(other, strict=False)
         return False
 
-    def __getitem__(self, key: Union[slice, atomic.IntervalValue[atomic.TO]]) -> V:
+    def __getitem__(self, key: Union[atomic.IntervalValue[atomic.TO], slice]) -> V:
         """
         Return a value using either a slice or an interval value.
 
@@ -188,7 +188,7 @@ class IntervalDict(
 
         Returns
         -------
-            The found value
+            The found value or a new :class:`IntervalDict` if key is a slice.
 
         Raises
         ------
@@ -218,15 +218,20 @@ class IntervalDict(
         """
         if isinstance(key, slice):
             search = IntervalDict._from_slice(key)
-            result = []
+            intervals = self._intervals.__class__()  # type: ignore
+            mapping = {}
             for found in self.select(search, strict=False):
                 value = self._mapping[found]
                 interval = atomic.Interval()  # type: ignore
                 interval._lower = max(found.lower, search.lower)
                 interval._upper = min(found.upper, search.upper)
-                result.append((interval, value))
+                intervals.append(interval)
+                mapping[interval] = value
             # pylint: disable=too-many-function-args
-            return self.__class__(result)  # type: ignore
+            result = self.__class__()
+            result._intervals = intervals
+            result._mapping = mapping
+            return result  # type: ignore
         interval = IntervalDict._interval(key)
         index = self._bisect_left(interval)
         if index < len(self._intervals):  # type: ignore
@@ -593,10 +598,16 @@ class MutableIntervalDict(
         self._default = default
         self._operator = operator
         self._strict = strict
-        self._mapping = {}
-        self._intervals: SortedSet = SortedSet()
-        if iterable is not None:
-            self.update(iterable)
+        if isinstance(iterable, IntervalDict):
+            self._mapping = iterable._mapping.copy()
+            self._intervals = SortedSet(iterable._intervals)
+        else:
+            self._mapping = {}
+            self._intervals: SortedSet = SortedSet()
+            if isinstance(iterable, dict):
+                self.update(*({key: value} for key, value in iterable.items()))
+            elif iterable is not None:
+                self.update(*({key: value} for key, value in iterable))  # type: ignore
 
     def __getitem__(self, key: Union[slice, atomic.IntervalValue[atomic.TO]]) -> V:
         """
@@ -817,6 +828,17 @@ class MutableIntervalDict(
             TypeError
                 if an argument is not iterable.
 
+        Note
+        ----
+            If the parameter ``strict`` used in the constructor is :data:`False
+            <python:False>`, the complexity is in :math:`O(n\\,log(n)\\,k\\,\\lambda)`
+            where:
+
+            * :math:`n` is the length of ``*args``;
+            * :math:`k` is the number of output intervals;
+            * :math:`\\lambda` is the the cost of the ``operator`` parameter used in
+              the constructor.
+
         Examples
         --------
 
@@ -825,17 +847,29 @@ class MutableIntervalDict(
             >>> a = MutableIntervalDict[int, int](
             ...     operator=add,
             ...     default=lambda: 0,
-            ...     strict=False
             ... )
             >>> a.update({(1, 10): 1})
             >>> print(a)
             {'[1;10)': 1}
-            >>> a.update({(5, 20): 2})
-            >>> print(a)
-            {'[1;5)': 1, '[5;10)': 3, '[10;20)': 2}
-            >>> a.update({(10, 30): 3})
+            >>> a.update(
+            ...     FrozenIntervalDict[int, int]({(5, 20): 2}),
+            ...     FrozenIntervalDict[int, int]({(10, 30): 3})
+            ... )
             >>> print(a)
             {'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}
+            >>> a = MutableIntervalDict[int, set](
+            ...     operator=lambda x, y: x | y,
+            ...     strict=False
+            ... )
+            >>> a.update({(1, 10): {1}})
+            >>> print(a)
+            {'[1;10)': {1}}
+            >>> a.update(
+            ...     FrozenIntervalDict[int, set]({(5, 20): {2}}),
+            ...     FrozenIntervalDict[int, set]({(10, 30): {3}})
+            ... )
+            >>> print(a)
+            {'[1;5)': {1}, '[5;10)': {1, 2}, '[10;20)': {2, 3}, '[20;30)': {3}}
         """
         # TODO determine complexity
         strict = self._strict
@@ -843,7 +877,7 @@ class MutableIntervalDict(
         if strict or operator is None:
             self._strict_update(*args)
         else:
-            self._enhanced_update(*args, operator=operator)
+            self._enhanced_update(*args)
 
     def _strict_update(
         self,
@@ -864,6 +898,14 @@ class MutableIntervalDict(
                 raise TypeError(f"{type(other)} object is not iterable")
 
     # pylint: disable=protected-access
+    @classmethod
+    def _rest(cls, rest, cursors, index, element):
+        if cursors[index] < len(element):
+            interval = element._intervals[cursors[index]]
+            value = element._mapping[interval]
+            rest.add((interval.lower, interval.upper, index, value))
+
+    # pylint: disable=protected-access
     def _create(self, *args):
         # Create a list of non empty IntervalDict
         elements = []
@@ -879,10 +921,7 @@ class MutableIntervalDict(
 
         rest = SortedList()
         for index, element in enumerate(elements):
-            if cursors[index] < len(element):
-                interval = element._intervals[cursors[index]]
-                value = element._mapping[interval]
-                rest.add((interval.lower, interval.upper, index, value))
+            self._rest(rest, cursors, index, element)
 
         return (elements, cursors, current, rest)
 
@@ -896,10 +935,7 @@ class MutableIntervalDict(
             del current[0]
             cursors[index] += 1
             element = elements[index]
-            if cursors[index] < len(element):
-                interval = element._intervals[cursors[index]]
-                value = element._mapping[interval]
-                rest.add((interval.lower, interval.upper, index, value))
+            cls._rest(rest, cursors, index, element)
 
         if current or not rest:
             lower = upper.next()
@@ -926,7 +962,6 @@ class MutableIntervalDict(
             Mapping[atomic.IntervalValue[atomic.TO], V],
             Iterable[Tuple[atomic.IntervalValue[atomic.TO], V]],
         ],
-        operator: Optional[Callable[[V, V], V]] = None,
     ) -> None:
         intervals = []
         mapping = {}
@@ -942,13 +977,13 @@ class MutableIntervalDict(
                 upper_closed=upper.type == 0,
             )
             value = reduce(
-                operator, (value for (_, _, _, value) in current)  # type: ignore
+                self._operator, (value for (_, _, _, value) in current)  # type: ignore
             )
             intervals.append(interval)
             mapping[interval] = value
             (lower, upper) = self._next(upper, elements, cursors, current, rest)
 
-        self._intervals = intervals
+        self._intervals = SortedSet(intervals)
         self._mapping = mapping
 
     def clear(self) -> None:

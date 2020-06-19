@@ -43,14 +43,15 @@ class IntervalSet(
         :math:`n_1, ... n_k` the number of intervals for methods with multiple
         arguments.
 
-        The complexity in time of methods is:
+        The complexity in time of methods is estimated at (it has to be proven,
+        see https://github.com/chdemko/py-part/issues/3):
 
         ============================  ===================================
         Methods                       Average case
         ============================  ===================================
         :meth:`__len__`               :math:`O(1)`
         :meth:`__contains__`          :math:`O(\\log(n))`
-        :meth:`__getitem__`           :math:`O(1)`
+        :meth:`__getitem__`           :math:`O(1)` :math:`O(n)`
         :meth:`__iter__`              :math:`O(1)`
         :meth:`__invert__`            :math:`O(n)`
         :meth:`__reversed__`          :math:`O(n)`
@@ -1233,6 +1234,7 @@ class MutableIntervalSet(
         ===================================  ===================================
         Methods                              Average case
         ===================================  ===================================
+        :meth:`__getitem__`                  :math:`O(\\log(n))` :math:`O(n)`
         :meth:`__iand__`                     :math:`O(\\log^2(n)+\\log^2(m)))`
         :meth:`__ior__`                      :math:`O(\\log^2(n)+\\log^2(m)))`
         :meth:`__isub__`                     :math:`O(\\log^2(n)+\\log^2(m)))`
@@ -1244,7 +1246,7 @@ class MutableIntervalSet(
         :meth:`add`                          :math:`O(\\log(n))`
         :meth:`remove`                       :math:`O(\\log(n))`
         :meth:`discard`                      :math:`O(\\log(n))`
-        :meth:`pop`                          :math:`O(1)`
+        :meth:`pop`                          :math:`O(\\log(n))`
         :meth:`clear`                        :math:`O(1)`
         ===================================  ===================================
 

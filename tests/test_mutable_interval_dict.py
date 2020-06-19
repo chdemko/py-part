@@ -1,13 +1,33 @@
 import unittest
 import operator
 
+from sortedcontainers import SortedSet
+
 from part import MutableIntervalDict, FrozenIntervalSet, Interval, Atomic
 
 
 class MutableIntervalDictTestCase(unittest.TestCase):
-    def test___item__(self):
+    def test___init__(self):
         a = MutableIntervalDict[int, int]({(10, 15): 1, (20, 25): 2, (30, 35): 3})
         self.assertEqual(str(a), "{'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}")
+
+        a = MutableIntervalDict[int, int](
+            {(10, 15): 1, (20, 25): 2, (30, 35): 3},
+            operator=lambda x, y: x + y,
+            strict=False,
+        )
+        self.assertEqual(str(a), "{'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}")
+
+        a = MutableIntervalDict[int, int](
+            [((10, 15), 1), ((20, 25), 2), ((30, 35), 3)],
+            operator=lambda x, y: x + y,
+            strict=False,
+        )
+        self.assertEqual(str(a), "{'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}")
+
+        b = MutableIntervalDict(a, operator=lambda x, y: x + y, strict=False)
+        self.assertEqual(str(b), "{'[10;15)': 1, '[20;25)': 2, '[30;35)': 3}")
+
         with self.assertRaises(TypeError):
             _ = MutableIntervalDict[int, int](1)
 
@@ -499,6 +519,10 @@ class MutableIntervalDictTestCase(unittest.TestCase):
         self.assertEqual(
             str(a), "{'[1;5)': 1, '[5;10)': 3, '[10;20)': 5, '[20;30)': 3}"
         )
+        self.assertIsInstance(a._intervals, SortedSet)
+
+        with self.assertRaises(TypeError):
+            MutableIntervalDict[int, int]().update(None)
 
     def test___or__(self):
         a = MutableIntervalDict[int, int](
