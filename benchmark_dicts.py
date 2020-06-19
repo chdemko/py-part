@@ -1,3 +1,7 @@
+"""
+Compute a benchmark of MutableIntervalDict update.
+"""
+
 # python benchmark_dicts.py -h
 
 import argparse
@@ -5,7 +9,9 @@ import operator
 import random
 import time
 
-from part import MutableIntervalDict, Interval
+from part import MutableIntervalDict
+
+# pylint: disable=invalid-name
 
 parser = argparse.ArgumentParser(
     description="Benchmark of the update of sorted interval dicts. "
