@@ -4,7 +4,7 @@
 
 import argparse
 import operator
-import random
+from random import SystemRandom
 import time
 
 from part import MutableIntervalDict
@@ -22,6 +22,8 @@ parser.add_argument("length", metavar="K", type=int, help="number of unit interv
 parser.add_argument("range", metavar="R", type=int, help="range unit intervals")
 args = parser.parse_args()
 
+cryptogen = SystemRandom()
+
 count = 0
 total1 = 0.0
 total2 = 0.0
@@ -31,7 +33,7 @@ for run in range(args.runs):
     for index in range(args.count):
         current = []
         for cursor in range(args.length):
-            rand = random.randrange(args.range)
+            rand = cryptogen.randrange(args.range)
             current.append(((rand, rand + 1), 1))
         dicts.append(MutableIntervalDict[int, int](current))  # type: ignore
         interval_count += len(dicts[-1])
