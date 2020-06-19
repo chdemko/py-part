@@ -1,6 +1,4 @@
-"""
-Compute a benchmark of FrozenIntervalSet intersection.
-"""
+"""Compute a benchmark of FrozenIntervalSet intersection."""
 
 # python benchmark_sets.py -h
 
@@ -27,7 +25,7 @@ args = parser.parse_args()
 cryptogen = SystemRandom()
 
 count = 0
-total = 0
+total = 0.0
 interval_count = 0
 for run in range(args.runs):
     sets = []
@@ -36,10 +34,12 @@ for run in range(args.runs):
         for cursor in range(args.length):
             rand = cryptogen.randrange(args.range)
             current.append((rand, rand + 1))
-        sets.append(FrozenIntervalSet[int](current))
+        sets.append(FrozenIntervalSet[int](current))  # type: ignore
         interval_count += len(sets[-1])
     start = time.time()
-    count += len(FrozenIntervalSet[int]([Interval[int]()]).intersection(*sets))
+    count += len(
+        FrozenIntervalSet[int]([Interval[int]()]).intersection(*sets)  # type: ignore
+    )
     end = time.time()
     total += end - start
 print(

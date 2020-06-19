@@ -12,7 +12,11 @@ from part.values import INFINITY, NegativeInfinity, PositiveInfinity  # type: ig
 
 
 class TotallyOrdered(ABC):
-    """TotallyOrdered class."""
+    """
+    TotallyOrdered class.
+
+    Sub-class of this abstract class must implement a total order on a type.
+    """
 
     @abstractmethod
     def __lt__(self, other: Any) -> bool:
