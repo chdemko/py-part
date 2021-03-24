@@ -12,7 +12,11 @@ from part.values import INFINITY, NegativeInfinity, PositiveInfinity  # type: ig
 
 
 class TotallyOrdered(ABC):
-    """TotallyOrdered class."""
+    """
+    TotallyOrdered class.
+
+    Sub-class of this abstract class must implement a total order on a type.
+    """
 
     @abstractmethod
     def __lt__(self, other: Any) -> bool:
@@ -685,35 +689,16 @@ class Interval(Generic[TO], Atomic[TO]):
             if upper_value is -INFINITY:
                 return Empty[TO]()  # type: ignore
             if lower_value is None:
-                return super().__new__(  # type: ignore
-                    cls,
-                    lower_value=lower_value,
-                    upper_value=upper_value,
-                    lower_closed=lower_closed,
-                    upper_closed=upper_closed,
-                )
+                return object.__new__(cls)
             if upper_value is None:
-                return super().__new__(  # type: ignore
-                    cls,
-                    lower_value=lower_value,
-                    upper_value=upper_value,
-                    lower_closed=lower_closed,
-                    upper_closed=upper_closed,
-                )
-
+                return object.__new__(cls)
             if (
                 lower_value > upper_value
                 or lower_value == upper_value
                 and not (lower_closed and upper_closed)
             ):  # type: ignore
                 return Empty[TO]()  # type: ignore
-            return super().__new__(  # type: ignore
-                cls,
-                lower_value=lower_value,
-                upper_value=upper_value,
-                lower_closed=lower_closed,
-                upper_closed=upper_closed,
-            )
+            return object.__new__(cls)
         raise ValueError(f"{lower_value} must be comparable with {upper_value}")
 
     def __init__(
@@ -1430,8 +1415,3 @@ class Interval(Generic[TO], Atomic[TO]):
 
 
 IntervalValue = Union[TO, Interval[TO], IntervalTuple[TO]]
-
-FULL: Interval = Interval()
-"""
-:const:`FULL` represents the full set.
-"""

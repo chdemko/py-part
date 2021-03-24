@@ -1,10 +1,15 @@
+"""Compute a benchmark of FrozenIntervalSet intersection."""
+
 # python benchmark_sets.py -h
 
 import argparse
-import random
+from random import SystemRandom
+
 import time
 
 from part import FrozenIntervalSet, Interval
+
+# pylint: disable=invalid-name
 
 parser = argparse.ArgumentParser(
     description="Benchmark of the intersection of sorted interval sets. "
@@ -17,20 +22,24 @@ parser.add_argument("length", metavar="K", type=int, help="number of unit interv
 parser.add_argument("range", metavar="R", type=int, help="range unit intervals")
 args = parser.parse_args()
 
+cryptogen = SystemRandom()
+
 count = 0
-total = 0
+total = 0.0
 interval_count = 0
 for run in range(args.runs):
     sets = []
     for index in range(args.count):
         current = []
         for cursor in range(args.length):
-            rand = random.randrange(args.range)
+            rand = cryptogen.randrange(args.range)
             current.append((rand, rand + 1))
-        sets.append(FrozenIntervalSet[int](current))
+        sets.append(FrozenIntervalSet[int](current))  # type: ignore
         interval_count += len(sets[-1])
     start = time.time()
-    count += len(FrozenIntervalSet[int]([Interval[int]()]).intersection(*sets))
+    count += len(
+        FrozenIntervalSet[int]([Interval[int]()]).intersection(*sets)  # type: ignore
+    )
     end = time.time()
     total += end - start
 print(

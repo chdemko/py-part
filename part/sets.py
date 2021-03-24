@@ -1107,7 +1107,6 @@ class IntervalSet(
 
 
 class FrozenIntervalSet(
-    Generic[atomic.TO],
     # pylint: disable=unsubscriptable-object
     IntervalSet[atomic.TO],
 ):
@@ -1211,7 +1210,6 @@ class FrozenIntervalSet(
 
 # pylint: disable=too-many-ancestors
 class MutableIntervalSet(
-    Generic[atomic.TO],
     # pylint: disable=unsubscriptable-object
     IntervalSet[atomic.TO],
     MutableSet[atomic.Interval[atomic.TO]],
@@ -1657,8 +1655,8 @@ class MutableIntervalSet(
         """
         try:
             return self._intervals.pop(0)
-        except IndexError:
-            raise KeyError("pop from an empty set")
+        except IndexError as error:
+            raise KeyError("pop from an empty set") from error
 
     def clear(self) -> None:
         """

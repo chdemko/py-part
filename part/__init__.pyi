@@ -140,6 +140,7 @@ class Mark:
     def near(self, other: Mark) -> bool: ...
 
 class Interval(Generic[TO], Atomic[TO]):
+    FULL: Interval[TO]
     def __init__(
         self,
         lower_value: Optional[Union[TO, NegativeInfinity]] = None,

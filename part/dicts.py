@@ -3,7 +3,7 @@
 # pylint: disable=too-many-lines
 
 import bisect
-import collections
+import collections.abc
 import itertools
 from abc import ABCMeta, abstractmethod
 from functools import reduce
@@ -30,6 +30,7 @@ from part import atomic, sets
 V = TypeVar("V")
 
 
+# pylint: disable=too-many-ancestors
 class IntervalDict(
     Generic[atomic.TO, V], Mapping[atomic.Interval[atomic.TO], V], metaclass=ABCMeta
 ):
@@ -445,7 +446,6 @@ class IntervalDict(
 
 # pylint: disable=too-few-public-methods
 class FrozenIntervalDict(
-    Generic[atomic.TO, V],
     # pylint: disable=unsubscriptable-object
     IntervalDict[atomic.TO, V],
 ):
@@ -499,9 +499,8 @@ class FrozenIntervalDict(
         self._intervals = intervals
 
 
-# pylint: disable=too-many-ancestors
+# pylint: disable=too-many-ancestors, abstract-method
 class MutableIntervalDict(
-    Generic[atomic.TO, V],
     # pylint: disable=unsubscriptable-object
     IntervalDict[atomic.TO, V],
     MutableMapping[atomic.Interval[atomic.TO], V],

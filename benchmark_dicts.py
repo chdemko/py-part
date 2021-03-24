@@ -1,11 +1,15 @@
+"""Compute a benchmark of MutableIntervalDict update."""
+
 # python benchmark_dicts.py -h
 
 import argparse
 import operator
-import random
+from random import SystemRandom
 import time
 
-from part import MutableIntervalDict, Interval
+from part import MutableIntervalDict
+
+# pylint: disable=invalid-name
 
 parser = argparse.ArgumentParser(
     description="Benchmark of the update of sorted interval dicts. "
@@ -18,29 +22,35 @@ parser.add_argument("length", metavar="K", type=int, help="number of unit interv
 parser.add_argument("range", metavar="R", type=int, help="range unit intervals")
 args = parser.parse_args()
 
+cryptogen = SystemRandom()
+
 count = 0
-total1 = 0
-total2 = 0
+total1 = 0.0
+total2 = 0.0
 interval_count = 0
 for run in range(args.runs):
     dicts = []
     for index in range(args.count):
         current = []
         for cursor in range(args.length):
-            rand = random.randrange(args.range)
+            rand = cryptogen.randrange(args.range)
             current.append(((rand, rand + 1), 1))
-        dicts.append(MutableIntervalDict[int, int](current))
+        dicts.append(MutableIntervalDict[int, int](current))  # type: ignore
         interval_count += len(dicts[-1])
 
     start1 = time.time()
-    result = MutableIntervalDict[int, int](operator=operator.add, strict=False)
+    result = MutableIntervalDict[int, int](  # type: ignore
+        operator=operator.add, strict=False
+    )
     result.update(*dicts)
     count += len(result)
     end1 = time.time()
     total1 += end1 - start1
 
     start2 = time.time()
-    result = MutableIntervalDict[int, int](operator=operator.add, strict=True)
+    result = MutableIntervalDict[int, int](  # type: ignore
+        operator=operator.add, strict=True
+    )
     result.update(*dicts)
     count += len(result)
     end2 = time.time()
