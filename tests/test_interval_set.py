@@ -10,7 +10,10 @@ class IntervalTestCase(unittest.TestCase):
         self.assertEqual(
             str(
                 FrozenIntervalSet[int](
-                    [Interval[int](1, 2), Interval[int](0, 1, upper_closed=True),]
+                    [
+                        Interval[int](1, 2),
+                        Interval[int](0, 1, upper_closed=True),
+                    ]
                 )
             ),
             "[0;2)",
@@ -24,7 +27,8 @@ class IntervalTestCase(unittest.TestCase):
             str(FrozenIntervalSet[int]([(2, 3), (0, 1), 1])), "[0;1] | [2;3)"
         )
         self.assertEqual(
-            str(FrozenIntervalSet[int]([(2, 3), (0, 1, True, True)])), "[0;1] | [2;3)",
+            str(FrozenIntervalSet[int]([(2, 3), (0, 1, True, True)])),
+            "[0;1] | [2;3)",
         )
         self.assertEqual(
             str(FrozenIntervalSet[int]([(2, 3, None), (0, 1)])), "[0;1) | (2;3)"
@@ -317,7 +321,11 @@ class IntervalTestCase(unittest.TestCase):
         self.assertEqual(list(iter(a.select((1, 14)))), [Interval[int](5, 10)])
         self.assertEqual(
             list(iter(a.select((1, 14), strict=False))),
-            [Interval[int](0, 2), Interval[int](5, 10), Interval[int](13, 23),],
+            [
+                Interval[int](0, 2),
+                Interval[int](5, 10),
+                Interval[int](13, 23),
+            ],
         )
         self.assertEqual(list(iter(a.select(Empty[int]()))), [])
         self.assertEqual(list(iter(a.select((24, 31, None)))), [])
@@ -325,7 +333,8 @@ class IntervalTestCase(unittest.TestCase):
         self.assertEqual(list(iter(a.select((-1, 1)))), [])
         self.assertEqual(list(iter(a.select((-1, 0)))), [])
         self.assertEqual(
-            list(iter(a.select((24, 31, None), strict=False))), [Interval[int](24, 25)],
+            list(iter(a.select((24, 31, None), strict=False))),
+            [Interval[int](24, 25)],
         )
         self.assertEqual(list(iter(a.select((30, 31), strict=False))), [])
         self.assertEqual(
