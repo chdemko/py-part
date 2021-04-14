@@ -24,7 +24,7 @@ with open("README.md", "r") as stream:
 
 setuptools.setup(
     name="py-part",
-    version="0.0.5",
+    version="0.0.6",
     author="Christophe Demko",
     author_email="chdemko@gmail.com",
     description="An interval library package",
@@ -54,14 +54,14 @@ setuptools.setup(
         "Natural Language :: English",
     ],
     python_requires=">=3.6",
-    install_requires=["sortedcontainers>=2.2"],
+    install_requires=["sortedcontainers>=2.3"],
     extras_require={
         "docs": [
-            "sphinx>=3.1",
-            "sphinx_rtd_theme>=0.4",
+            "sphinx>=3.5",
+            "sphinx_rtd_theme>=0.5",
             "jupyter>=1.0",
-            "graphviz>=0.13",
-            "nbsphinx>=0.7",
+            "graphviz>=0.16",
+            "nbsphinx>=0.8",
         ],
         "test": [
             "tox>=3.14",
