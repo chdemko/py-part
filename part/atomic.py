@@ -632,6 +632,7 @@ class Interval(Generic[TO], Atomic[TO]):
 
     __slots__ = ("_lower", "_upper")
 
+    # pylint: disable=arguments-differ
     def __new__(  # type: ignore
         cls,
         lower_value: Optional[Union[TO, NegativeInfinity]] = None,
